@@ -13,3 +13,6 @@ https://linux.die.net/man/3/snprintf
 https://linux.die.net/man/3/getpwuid
 https://man7.org/linux/man-pages/man2/getpriority.2.html
 https://man7.org/linux/man-pages/man2/nice.2.html
+https://linux.die.net/man/3/ctime
+https://pubs.opengroup.org/onlinepubs/7908799/xcurses/curses.h.html
+https://man7.org/linux/man-pages/man5/proc.5.html
