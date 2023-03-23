@@ -76,6 +76,8 @@ void init_tasks(term_header* th) {
     th->t_procs = i;
     closedir(proc_d);
 
+    th->task_list = get_lasttl(th->task_list); // seta para ser o ultimo
+
 }
 
 /*

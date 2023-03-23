@@ -39,25 +39,22 @@ TaskList* remove_task(TaskList* tl, w_task n_task) {
     return tl;
 }
 
-void free_tasklist(TaskList* tl) {
-    TaskList *aux;
-    while (tl != NULL) {
-        aux = tl->next;
-        free(tl);
-        tl = aux;
-    }
+TaskList* get_lasttl(TaskList* tl) {
+    TaskList* aux, *last;
+
+    for (aux = tl; aux != NULL; aux = aux->next)
+        last = aux;
+
+    return last;
 }
 
 void print_tasklist(TaskList* tl, int starts_at, int max_rows) {
     int i = 0;
-    TaskList* aux, *last;
+    TaskList* aux;
 
-    // coloca na ordem correta
-    for (aux = tl; aux != NULL; aux = aux->next)
-       last = aux;
 
     // percorre n primeiros
-    for (aux = last; i < starts_at && aux != NULL; i++)
+    for (aux = tl; i < starts_at && aux != NULL; i++)
         aux = aux->prev;
 
     // printa cada task
@@ -74,5 +71,14 @@ void print_tasklist(TaskList* tl, int starts_at, int max_rows) {
         }
         i++;
 
+    }
+}
+
+void free_tasklist(TaskList* tl) {
+    TaskList *aux;
+    while (tl != NULL) {
+        aux = tl->next;
+        free(tl);
+        tl = aux;
     }
 }
