@@ -112,8 +112,8 @@ MiB Swap:  16384.0 total,  16384.0 free,      0.0 used.  10249.2 avail Mem
 
 // mostra as informacoes globais e
 // chama o print da task_list
-void tl_print(term_header* th) {
-    printw("toscop - %d:%d:%d up %d days, %d hours and %d minutes\n", 
+void tl_print(term_header* th, int starts_at) {
+    printw("toscop - %02d:%02d:%02d up %d days, %d hours and %d minutes\n", 
             th->ti->tm_hour, th->ti->tm_min,
             th->ti->tm_sec, th->d_uptime,
             th->h_uptime,
@@ -134,9 +134,10 @@ void tl_print(term_header* th) {
             th->f_swap,
             th->t_swap - th->f_swap
             );
+    printw("\tPID\t\tUSER\t\tPR\n");
 
     // da print em cada task
-    //print_tasklist(th->task_list);
+    print_tasklist(th->task_list, starts_at, MAX_ROWS + starts_at);
 }
 
 // free no term_header

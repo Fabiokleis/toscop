@@ -14,6 +14,7 @@ typedef struct w_task {
     char* owner_name;       // nome do usuario dono da task
     long int gid;           // grupo dono da task
     long int prio;          // prioridade da task
+    char* command;          // comando que gerou a task
 } w_task;
 
 w_task* create_w_task(long int t_pid);

@@ -1,5 +1,6 @@
 #include "task_list.h"
 #include "w_task.h"
+#include <ncurses.h>
 
 TaskList* create_tasklist() {
    return NULL;
@@ -47,10 +48,31 @@ void free_tasklist(TaskList* tl) {
     }
 }
 
-void print_tasklist(TaskList* tl) {
-    if (tl != NULL) {
-        // passa todos os nós e vem `retornando` imprimindo
-        print_tasklist(tl->next);
-        print_wtask(&tl->task);
+void print_tasklist(TaskList* tl, int starts_at, int max_rows) {
+    int i = 0;
+    TaskList* aux, *last;
+
+    // coloca na ordem correta
+    for (aux = tl; aux != NULL; aux = aux->next)
+       last = aux;
+
+    // percorre n primeiros
+    for (aux = last; i < starts_at && aux != NULL; i++)
+        aux = aux->prev;
+
+    // printa cada task
+    for (; i < max_rows && aux != NULL; aux = aux->prev) {
+
+        // para destacar o processo atual
+        if (i == starts_at) {
+            attron(A_REVERSE); // coloca foreground com a cor do background
+            print_wtask(&aux->task);
+            attroff(A_REVERSE);
+        } else {
+            print_wtask(&aux->task);
+
+        }
+        i++;
+
     }
 }

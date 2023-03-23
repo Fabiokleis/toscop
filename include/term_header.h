@@ -6,6 +6,7 @@
 #include "task_list.h"
 #define PROC_PATH "/proc/"
 #define LINESZ 1024
+#define MAX_ROWS 25
 
 /*
  *  cabeçalho do toscop com informações globais
@@ -32,7 +33,7 @@ typedef struct term_header {
 term_header *create_term_header();
 void init_tasks(term_header* th);
 void parse_cpu_stats(term_header* th);
-void tl_print(term_header* th);
+void tl_print(term_header* th, int starts_at);
 void tl_free(term_header* th);
 
 #endif

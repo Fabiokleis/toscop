@@ -1,46 +1,43 @@
-#include <curses.h>
 #include <stdio.h>
-#include <time.h>
-#include "term_header.h"
 #include <ncurses.h>
+#include "term_header.h"
 
 
 int main() {
+    term_header* th = create_term_header();
 
-    term_header* th = create_term_header();    
-    
+    int starts_at, k_p = 0;
 
-    //int n_rows = LINES;
-    //int n_cols = COLS;
     initscr();
     raw();
     keypad(stdscr, TRUE);
     curs_set(FALSE);
     noecho();
-   
-    int k_p;
+
+ 
     while (k_p != 'q') {
+
+        clear();
         refresh();
 
-        tl_print(th);
+        tl_print(th, starts_at);
 
-        k_p = wgetch(stdscr);
+        k_p = wgetch(stdscr); // pega a tecla
        
         switch (k_p) {
             case KEY_DOWN:
-                  printw("todo\n");
-                  break;
+                starts_at = starts_at + 1 == th->t_procs - 1 ? 0 : starts_at + 1;
+                break;
                   
             case KEY_UP:
-                  printw("todo\n");
-                  break;
+                starts_at = starts_at - 1 <= 0 ? th->t_procs - 1 : starts_at - 1;
+                break;
 
         }
     }
 
 
     endwin();
-    
     tl_free(th);
 
     return 0;

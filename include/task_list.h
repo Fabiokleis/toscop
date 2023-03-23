@@ -16,6 +16,6 @@ TaskList* search_task(TaskList* tl, w_task n_task);
 TaskList* remove_task(TaskList* tl, w_task n_task);
 
 void free_tasklist(TaskList* tl);
-void print_tasklist(TaskList *tl);
+void print_tasklist(TaskList *tl, int starts_at, int max_rows);
 
 #endif
