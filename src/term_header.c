@@ -46,13 +46,14 @@ term_header* create_term_header() {
     //parse_cpu_stats(th); TODO: parse all cpu stats
     init_procs(th); // adiciona todas as procs
 
+
     return th;
 }
 
 // inicializa todos as procs numa lista duplamente encadeada
 void init_procs(term_header* th) {
-    int i = 0;
 
+    int i = 0;
     DIR* proc_d = opendir("/proc");
     struct dirent* pid_f;
 
@@ -72,6 +73,10 @@ void init_procs(term_header* th) {
     }
 
     th->t_procs = i;
+    if (th->t_procs == 0) {
+        fprintf(stderr, "ERROR: could not load any process: %s\n", strerror(errno));
+        exit(1);
+    }
     closedir(proc_d);
 
     th->proc_list = get_lasttl(th->proc_list); // seta para ser o ultimo
@@ -100,7 +105,6 @@ void parse_cpu_stats(term_header *th) {
     fclose(cpu_stat_file);
 }
 */
-
 /* top format
 top - 17:31:20 up  1:34,  1 user,  load average: 0.34, 0.35, 0.34
 Tasks: 346 total,   1 running, 345 sleeping,   0 stopped,   0 zombie
@@ -134,6 +138,7 @@ void tl_print(term_header* th, int starts_at) {
             th->f_swap,
             th->t_swap - th->f_swap
             );
+    printw("\n");
     printw("\tPID\tSTATE\tUSER%-12sPR\tNI\tCOMMAND\n", "");
 
     // da print em cada proc

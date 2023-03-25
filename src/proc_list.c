@@ -7,13 +7,19 @@ ProcList* create_proclist() {
 }
 
 ProcList* add(ProcList *tl, w_proc* n_proc) {
-   ProcList *no = (ProcList *) malloc(sizeof(ProcList));
-   no->proc = n_proc;
-   no->prev = NULL;
-   no->next = tl;
-   if (tl != NULL)
-      tl->prev = no;
-   return no;   
+
+    if (n_proc != NULL) {
+        ProcList *no = (ProcList *) malloc(sizeof(ProcList));
+        no->proc = n_proc;
+        no->prev = NULL;
+        no->next = tl;
+        if (tl != NULL)
+          tl->prev = no;
+        return no;   
+    } else {
+        return tl;
+    }
+
 }
 
 ProcList* get_lasttl(ProcList* tl) {
@@ -23,6 +29,25 @@ ProcList* get_lasttl(ProcList* tl) {
         last = aux;
 
     return last;
+}
+
+int get_tprocs(ProcList* tl) {
+    ProcList* aux;
+    int tp = 0;
+    if (tl->prev == NULL) {
+        aux = tl;
+        while (aux != NULL) {
+            aux = aux->next;
+            tp++;
+        }
+    } else if (tl->next == NULL) {
+        aux = get_lasttl(tl);
+        while (aux != NULL) {
+            aux = aux->prev;
+            tp++;
+        }
+    }
+    return tp;
 }
 
 void print_proclist(ProcList* tl, int starts_at, int max_rows) {
@@ -44,7 +69,6 @@ void print_proclist(ProcList* tl, int starts_at, int max_rows) {
             attroff(A_REVERSE);
         } else {
             print_wproc(aux->proc);
-
         }
         i++;
 

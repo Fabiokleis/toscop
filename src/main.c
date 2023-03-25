@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <ncurses.h>
 #include <time.h>
+#include <pthread.h>
 #include "term_header.h"
 
 
@@ -25,13 +26,14 @@ int main() {
 
     while (k_p != 'q') {
         refresh_t = (double)(clock() - start_t) / CLOCKS_PER_SEC;
-        if (refresh_t >= 4.0) {
-            tl_free(th);
-            th = create_term_header();
-            start_t = clock();
+        if (refresh_t >= 5.0) {
+
+            tl_free(th); // limpa lista de processos anterior
+            th = create_term_header(); // cria nova lista
+            start_t = clock(); // reseta o clock
         }
-        
         tl_print(th, starts_at);
+
 
         k_p = wgetch(stdscr); // pega a tecla
        
@@ -45,13 +47,10 @@ int main() {
                 break;
 
         }
-
         refresh();
         clear();
 
     }
-
-
 
     endwin();
     tl_free(th);
