@@ -10,15 +10,15 @@
 #include <time.h>
 #include <ncurses.h>
 #include "term_header.h"
-#include "w_task.h"
-#include "task_list.h"
+#include "w_proc.h"
+#include "proc_list.h"
 
 
 // cria e inicializa os campos do th
 term_header* create_term_header() {
     term_header *th = malloc(sizeof(term_header)); 
     th->ti = malloc(sizeof(struct tm));
-    th->task_list = create_tasklist();
+    th->proc_list = create_proclist();
 
     sysinfo(&th->si); // inicializa sysinfo
 
@@ -44,14 +44,14 @@ term_header* create_term_header() {
 
 
     //parse_cpu_stats(th); TODO: parse all cpu stats
-    init_tasks(th); // adiciona todas as tasks
+    init_procs(th); // adiciona todas as procs
 
     return th;
 }
 
-// inicializa todos as tasks numa lista duplamente encadeada
-void init_tasks(term_header* th) {
-    int pid, i = 0;
+// inicializa todos as procs numa lista duplamente encadeada
+void init_procs(term_header* th) {
+    int i = 0;
 
     DIR* proc_d = opendir("/proc");
     struct dirent* pid_f;
@@ -67,16 +67,14 @@ void init_tasks(term_header* th) {
         if (!isdigit(*pid_f->d_name))
             continue;
 
-        pid = strtol(pid_f->d_name, NULL, 10);
-       
-        th->task_list = add(th->task_list, *create_w_task(pid));
+        th->proc_list = add(th->proc_list, create_w_proc(strtol(pid_f->d_name, NULL, 10)));
         i++;
     }
 
     th->t_procs = i;
     closedir(proc_d);
 
-    th->task_list = get_lasttl(th->task_list); // seta para ser o ultimo
+    th->proc_list = get_lasttl(th->proc_list); // seta para ser o ultimo
 
 }
 
@@ -113,7 +111,7 @@ MiB Swap:  16384.0 total,  16384.0 free,      0.0 used.  10249.2 avail Mem
 
 
 // mostra as informacoes globais e
-// chama o print da task_list
+// chama o print da proc_list
 void tl_print(term_header* th, int starts_at) {
     printw("toscop - %02d:%02d:%02d up %d days, %d hours and %d minutes\n", 
             th->ti->tm_hour, th->ti->tm_min,
@@ -136,14 +134,14 @@ void tl_print(term_header* th, int starts_at) {
             th->f_swap,
             th->t_swap - th->f_swap
             );
-    printw("\tPID\t\tUSER\t\tPR\n");
+    printw("\tPID\tSTATE\tUSER%-12sPR\tNI\tCOMMAND\n", "");
 
-    // da print em cada task
-    print_tasklist(th->task_list, starts_at, MAX_ROWS + starts_at);
+    // da print em cada proc
+    print_proclist(th->proc_list, starts_at, MAX_ROWS + starts_at);
 }
 
 // free no term_header
 void tl_free(term_header* th) {
-    free_tasklist(th->task_list); 
+    free_proclist(th->proc_list); 
     free(th);
 }
