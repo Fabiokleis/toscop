@@ -9,7 +9,12 @@
 #include <ncurses.h>
 #include "w_proc.h"
 #include "term_header.h"
+#include "proc_parser.h"
 
+extern int r_procs;
+extern int s_procs;
+extern int z_procs;
+extern int i_procs;
 
 w_proc* create_w_proc(long int pid) { 
     w_proc* proc = malloc(sizeof(w_proc));
@@ -34,7 +39,7 @@ w_proc* create_w_proc(long int pid) {
 
 void stat_proc(w_proc* proc) {
     
-    // le o /proc/{pid}/stat
+    // le o /proc/[pid]/stat
     FILE* stat_file;
     int p_len = strlen(proc->path) + 6;
     char* stat_path = malloc(sizeof(char) * p_len);
@@ -47,18 +52,34 @@ void stat_proc(w_proc* proc) {
         exit(1);
     }
 
-    proc->comm = malloc(sizeof(char) * 100);
-    fscanf(stat_file, "%d %s %c %d %d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %ld %ld %ld %*d %*d %lu",
-            &proc->pid, 
-            proc->comm,
-            &proc->state,
-            &proc->ppid,
-            &proc->gid,
-            &proc->prio,
-            &proc->nice,
-            &proc->nt,
-            &proc->vt_size
-    );
+    // pega cada campo do /proc/[pid]/stat separados por espaco e coloca num hashmap
+    // cada processo tem 52 campos no /proc/[pid]/stat (man proc para ver)
+    parse_stat(proc->pdict, stat_file);
+
+
+    // para verificar a quantidade de estados dos processos
+    int j = 0;
+    while (proc->pdict[2].value[j] != '\0') {
+
+        switch (proc->pdict[2].value[j]) {
+            case 'S':
+                s_procs++;
+                break;
+            case 'Z':
+                z_procs++;
+                break;
+            case 'I':
+                i_procs++;
+                break;
+            case 'R':
+                r_procs++;
+                break;
+            default:
+                break;
+        }
+        j++;
+    }
+    
 
     fclose(stat_file);
     struct stat sb;
@@ -72,7 +93,16 @@ void stat_proc(w_proc* proc) {
 }
 
 void print_wproc(w_proc* proc) {
-    printw("\t%d\t%c\t%-18s%ld\t%ld\t%-24s\n", proc->pid, proc->state, proc->owner_name, proc->prio, proc->nice, proc->comm);
+
+    printw("\t%s\t%s\t%-18s%s\t%s\t%-24s\t\n", 
+            proc->pdict[0].value, 
+            proc->pdict[2].value, 
+            proc->owner_name, 
+            proc->pdict[17].value, 
+            proc->pdict[18].value,
+            proc->pdict[1].value
+    );
+
 }
 
 void proc_free(w_proc* proc) {

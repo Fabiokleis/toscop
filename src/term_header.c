@@ -13,9 +13,17 @@
 #include "w_proc.h"
 #include "proc_list.h"
 
+int r_procs = 0;
+int s_procs = 0;
+int z_procs = 0;
+int i_procs = 0;
 
 // cria e inicializa os campos do th
 term_header* create_term_header() {
+    r_procs = 0;
+    s_procs = 0;
+    z_procs = 0;
+    i_procs = 0;
     term_header *th = malloc(sizeof(term_header)); 
     th->ti = malloc(sizeof(struct tm));
     th->proc_list = create_proclist();
@@ -69,7 +77,9 @@ void init_procs(term_header* th) {
             continue;
 
         th->proc_list = add(th->proc_list, create_w_proc(strtol(pid_f->d_name, NULL, 10)));
+        //th->proc_list->proc->pid == strtol(pid_f->d_name, NULL, 10)
         i++;
+    
     }
 
     th->t_procs = i;
@@ -80,7 +90,6 @@ void init_procs(term_header* th) {
     closedir(proc_d);
 
     th->proc_list = get_lasttl(th->proc_list); // seta para ser o ultimo
-
 }
 
 /*
@@ -121,23 +130,32 @@ void tl_print(term_header* th, int starts_at) {
             th->ti->tm_hour, th->ti->tm_min,
             th->ti->tm_sec, th->d_uptime,
             th->h_uptime,
-            th->m_uptime);
+            th->m_uptime
+    );
 
-    printw("Tasks: %d total, procs: %d, ", th->si.procs, th->t_procs);
-    printw("load average: %ld, %ld, %ld\n", th->si.loads[0], th->si.loads[1], th->si.loads[2]);
+    printw("Tasks: %d total, procs: %d, %d running, %d sleeping, %d zombie, %d idle\n", 
+            th->si.procs,
+            th->t_procs,
+            r_procs,
+            s_procs,
+            z_procs,
+            i_procs
+    );
+    //printw("load average: %ld, %ld, %ld\n", th->si.loads[0], th->si.loads[1], th->si.loads[2]);
 
 
     printw("MiB Mem: %.1f total, %.1f free, %.1f buffer ram, %.1f ram shared\n", 
             th->t_mem, 
             th->f_mem,
             th->b_mem, 
-            th->s_mem);
+            th->s_mem
+    );
 
     printw("MiB Swap: %.1f total, %.1f free, %.1f used\n", 
             th->t_swap, 
             th->f_swap,
             th->t_swap - th->f_swap
-            );
+    );
     printw("\n");
     printw("\tPID\tSTATE\tUSER%-14sPR\tNI\tCOMMAND\n", "");
 

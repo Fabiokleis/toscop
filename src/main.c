@@ -26,7 +26,6 @@ typedef struct term_refresh_t {
 } term_refresh_t;
 
 
-
 // thread para atualizar a lista de processos
 void* refresh_th(void* arg) {
     term_refresh_t* trt = arg;
@@ -78,6 +77,9 @@ void* print_th(void* arg) {
                 break;
             case KEY_UP:
                 starts_at = starts_at - 1 < 0 ? tpt->th->t_procs - 1 : starts_at - 1;
+                break;
+
+            default:
                 break;
         }
 
