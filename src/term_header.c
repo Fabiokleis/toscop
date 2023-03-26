@@ -139,7 +139,7 @@ void tl_print(term_header* th, int starts_at) {
             th->t_swap - th->f_swap
             );
     printw("\n");
-    printw("\tPID\tSTATE\tUSER%-12sPR\tNI\tCOMMAND\n", "");
+    printw("\tPID\tSTATE\tUSER%-14sPR\tNI\tCOMMAND\n", "");
 
     // da print em cada proc
     print_proclist(th->proc_list, starts_at, MAX_ROWS + starts_at);

@@ -18,9 +18,7 @@ w_proc* create_w_proc(long int pid) {
     snprintf(proc->path, 15, PROC_PATH"%ld", pid);  // copia o path para dentro do buffer
                                                     //
     // pega informacoes da proc uid, gid
-    if (stat_proc(proc) == -1) {
-        return NULL;
-    }
+    stat_proc(proc);
 
     // pega o nome do usuario e outras informacos com base no uid do stat_proc
     struct passwd* r_pwd;
@@ -34,7 +32,7 @@ w_proc* create_w_proc(long int pid) {
     return proc;
 }
 
-int stat_proc(w_proc* proc) {
+void stat_proc(w_proc* proc) {
     
     // le o /proc/{pid}/stat
     FILE* stat_file;
@@ -50,7 +48,7 @@ int stat_proc(w_proc* proc) {
     }
 
     proc->comm = malloc(sizeof(char) * 100);
-    if (fscanf(stat_file, "%d %s %c %d %d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %ld %ld %ld %*d %*d %lu",
+    fscanf(stat_file, "%d %s %c %d %d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %ld %ld %ld %*d %*d %lu",
             &proc->pid, 
             proc->comm,
             &proc->state,
@@ -60,12 +58,8 @@ int stat_proc(w_proc* proc) {
             &proc->nice,
             &proc->nt,
             &proc->vt_size
-        ) != 9) 
-    {
-        //fprintf(stderr, "ERROR: could not fscanf %s: %s", stat_path, strerror(errno));
-        fclose(stat_file);
-        return -1;
-    }
+    );
+
     fclose(stat_file);
     struct stat sb;
 
@@ -75,11 +69,10 @@ int stat_proc(w_proc* proc) {
     }
     proc->uid = sb.st_uid;
 
-    return 0;
 }
 
 void print_wproc(w_proc* proc) {
-    printw("\t%d\t%c\t%-16s%ld\t%ld\t%-16s\n", proc->pid, proc->state, proc->owner_name, proc->prio, proc->nice, proc->comm);
+    printw("\t%d\t%c\t%-18s%ld\t%ld\t%-24s\n", proc->pid, proc->state, proc->owner_name, proc->prio, proc->nice, proc->comm);
 }
 
 void proc_free(w_proc* proc) {

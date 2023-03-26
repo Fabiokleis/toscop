@@ -23,7 +23,7 @@ typedef struct w_proc {
 } w_proc;
 
 w_proc* create_w_proc(long int pid);
-int stat_proc(w_proc* proc);
+void stat_proc(w_proc* proc);
 void print_wproc(w_proc* wproc);
 void proc_free(w_proc* proc);
 
