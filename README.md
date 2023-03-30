@@ -3,6 +3,7 @@ uma versão tosca do comando top
 trabalho para disciplina de sistemas operacionais
 
 # refs
+- https://wiki.inf.ufpr.br/maziero/lib/exe/fetch.php?media=socm:socm-livro.pdf 
 - https://man7.org/linux/man-pages/man2/syscalls.2.html                # lista com todas as syscalls
 - https://man7.org/linux/man-pages/man2/sysinfo.2.html                 # struct para pegar informacoes gerais do sistema (memoria, swap...)
 - https://pubs.opengroup.org/onlinepubs/7908799/xsh/dirent.h.html      # tipo do diretorio, utilizado para ler o /proc/[pid] 
