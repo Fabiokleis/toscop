@@ -133,8 +133,7 @@ void tl_print(term_header* th, int starts_at) {
             th->m_uptime
     );
 
-    printw("Tasks: %d total, procs: %d, %d running, %d sleeping, %d zombie, %d idle\n", 
-            th->si.procs,
+    printw("Tasks: %d total, %d running, %d sleeping, %d zombie, %d idle\n", 
             th->t_procs,
             r_procs,
             s_procs,
