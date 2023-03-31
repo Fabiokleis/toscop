@@ -3,16 +3,16 @@ COMPILER_FLAGS = -Wall -Wextra -Wpedantic
 SOURCES = ./src/*.c
 INCLUDES = ./include/
 LINKER_FLAGS = -lncurses -lpthread 
-OBJ_NAME = ./build/toscop
+NAME = toscop
 
-
-all:
+$(NAME):
 	mkdir -p build/
-	$(CC) $(SOURCES) $(COMPILER_FLAGS) $(LINKER_FLAGS) -I $(INCLUDES) -o $(OBJ_NAME)
+	$(CC) $(SOURCES) $(COMPILER_FLAGS) $(LINKER_FLAGS) -I $(INCLUDES) -o ./build/$(NAME)
+
+run: $(NAME) 
+	@./build/$(NAME)
 
 clean:
-	rm -f $(OBJ_NAME)
-
-run:
-	@$(OBJ_NAME)
+	rm -f ./build/$(NAME)
+	rmdir ./build
 
