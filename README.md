@@ -21,4 +21,5 @@ trabalho para disciplina de sistemas operacionais
 - https://linux.die.net/man/3/pthread_mutex_lock                       # funcao para dar lock em um mutex
 - https://linux.die.net/man/3/pthread_mutex_destroy                    # funcao para desalocar um mutex 
 - https://pubs.opengroup.org/onlinepubs/7908799/xsh/time.h.html        # para entender os variados tipos de tempo e as maneiras de mensura-lo 
--  https://man7.org/linux/man-pages/man3/clock_gettime.3.html          # funcao para obter o tempo a partir de um tipo de CLOCK 
+- https://man7.org/linux/man-pages/man3/clock_gettime.3.html           # funcao para obter o tempo a partir de um tipo de CLOCK 
+- https://man7.org/linux/man-pages/man3/getloadavg.3.html              # funcao para obter o loadavg do sistema (sysinfo retorna em long)

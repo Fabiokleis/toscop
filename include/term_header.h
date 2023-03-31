@@ -23,6 +23,7 @@ typedef struct term_header {
     double s_mem;
     double t_swap;
     double f_swap;
+    double lavg[3];          // loadavg do sistema
 
     int t_procs;             // total de processos
 

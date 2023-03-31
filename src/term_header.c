@@ -50,6 +50,8 @@ term_header* create_term_header() {
     th->t_swap = th->si.totalswap / mb;
     th->f_swap = th->si.freeswap / mb;
 
+    getloadavg(th->lavg, 3);
+
 
     //parse_cpu_stats(th); TODO: parse all cpu stats
     init_procs(th); // adiciona todas as procs
@@ -140,7 +142,7 @@ void tl_print(term_header* th, int starts_at) {
             z_procs,
             i_procs
     );
-    //printw("load average: %ld, %ld, %ld\n", th->si.loads[0], th->si.loads[1], th->si.loads[2]);
+    printw("load average: %.2f, %.2f, %.2f\n", th->lavg[0], th->lavg[1], th->lavg[2]);
 
 
     printw("MiB Mem: %.1f total, %.1f free, %.1f buffer ram, %.1f ram shared\n", 
