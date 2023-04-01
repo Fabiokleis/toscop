@@ -80,14 +80,19 @@ void* print_th(void* arg) {
             case KEY_DOWN:
                 {
                     pthread_mutex_lock(&toscop_mutex);
-                    starts_at = starts_at + 1 == tpt->th->t_procs ? 0 : starts_at + 1;
+
+                    starts_at++;
+                    starts_at = (starts_at % tpt->th->t_procs); // limita ate o numero de procs
+
                     pthread_mutex_unlock(&toscop_mutex);
                     break;
                 }
             case KEY_UP:
                 {
                     pthread_mutex_lock(&toscop_mutex);
+
                     starts_at = starts_at - 1 < 0 ? tpt->th->t_procs - 1 : starts_at - 1;
+
                     pthread_mutex_unlock(&toscop_mutex);
                     break;
                 }
