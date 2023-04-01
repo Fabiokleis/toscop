@@ -56,6 +56,8 @@ term_header* create_term_header() {
     //parse_cpu_stats(th); TODO: parse all cpu stats
     init_procs(th); // adiciona todas as procs
 
+    th->tail = get_lasttl(th->proc_list); // seta para ser o ultimo
+
 
     return th;
 }
@@ -81,7 +83,6 @@ void init_procs(term_header* th) {
         th->proc_list = add(th->proc_list, create_w_proc(strtol(pid_f->d_name, NULL, 10)));
         //th->proc_list->proc->pid == strtol(pid_f->d_name, NULL, 10)
         i++;
-    
     }
 
     th->t_procs = i;
@@ -90,8 +91,6 @@ void init_procs(term_header* th) {
         exit(1);
     }
     closedir(proc_d);
-
-    th->proc_list = get_lasttl(th->proc_list); // seta para ser o ultimo
 }
 
 /*
@@ -161,7 +160,7 @@ void tl_print(term_header* th, int starts_at) {
     printw("\tPID\tSTATE\tUSER%-14sPR\tNI\tCOMMAND\n", "");
 
     // da print em cada proc
-    print_proclist(th->proc_list, starts_at, MAX_ROWS + starts_at);
+    print_proclist(th->tail, starts_at, MAX_ROWS + starts_at);
 }
 
 // free no term_header

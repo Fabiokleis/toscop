@@ -19,9 +19,9 @@ extern int i_procs;
 w_proc* create_w_proc(long int pid) { 
     w_proc* proc = malloc(sizeof(w_proc));
 
-    proc->path = malloc(sizeof(char) * 15); // /proc + 11
-    snprintf(proc->path, 15, PROC_PATH"%ld", pid);  // copia o path para dentro do buffer
-                                                    //
+    proc->path = malloc(sizeof(char) * 18); // /proc/ + 12
+    snprintf(proc->path, 18, PROC_PATH"%ld", pid);  // copia o path para dentro do buffer
+                                                    
     // pega informacoes da proc uid, gid
     stat_proc(proc);
 
@@ -41,7 +41,7 @@ void stat_proc(w_proc* proc) {
     
     // le o /proc/[pid]/stat
     FILE* stat_file;
-    int p_len = strlen(proc->path) + 6;
+    int p_len = strlen(proc->path) + 7;
     char* stat_path = malloc(sizeof(char) * p_len);
     snprintf(stat_path, p_len, "%s/stat", proc->path);
 
@@ -54,32 +54,25 @@ void stat_proc(w_proc* proc) {
 
     // pega cada campo do /proc/[pid]/stat separados por espaco e coloca num hashmap
     // cada processo tem 52 campos no /proc/[pid]/stat (man proc para ver)
-    parse_stat(proc->pdict, stat_file);
-
+    proc_parse(proc->pdict, stat_file);
 
     // para verificar a quantidade de estados dos processos
-    int j = 0;
-    while (proc->pdict[2].value[j] != '\0') {
-
-        switch (proc->pdict[2].value[j]) {
-            case 'S':
-                s_procs++;
-                break;
-            case 'Z':
-                z_procs++;
-                break;
-            case 'I':
-                i_procs++;
-                break;
-            case 'R':
-                r_procs++;
-                break;
-            default:
-                break;
-        }
-        j++;
+    switch (proc->pdict[2].value[0]) {
+        case 'S':
+            s_procs++;
+            break;
+        case 'Z':
+            z_procs++;
+            break;
+        case 'I':
+            i_procs++;
+            break;
+        case 'R':
+            r_procs++;
+            break;
+        default:
+            break;
     }
-    
 
     fclose(stat_file);
     struct stat sb;

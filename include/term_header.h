@@ -28,6 +28,7 @@ typedef struct term_header {
     int t_procs;             // total de processos
 
     ProcList* proc_list;
+    ProcList* tail;
 } term_header;
 
 

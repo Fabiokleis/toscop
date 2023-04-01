@@ -13,7 +13,6 @@ typedef struct proc_list {
 ProcList* create_proclist();
 ProcList* add(ProcList* tl, w_proc* n_proc);
 ProcList* get_lasttl(ProcList* tl);
-ProcList* set_lasttl(ProcList* tl, int starts_at);
 int get_tprocs(ProcList* tl);
 
 void free_proclist(ProcList* tl);

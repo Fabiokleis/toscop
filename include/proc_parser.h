@@ -9,5 +9,6 @@ typedef struct proc_dict {
 } proc_dict;
 
 
-void parse_stat(proc_dict pdict[52], FILE* stat_file);
+void proc_parse(proc_dict pdict[52], FILE* stat_file);
+char* trim_v(char* value);
 #endif

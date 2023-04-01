@@ -75,14 +75,6 @@ void print_proclist(ProcList* tl, int starts_at, int max_rows) {
     }
 }
 
-ProcList* set_lasttl(ProcList *tl, int starts_at) {
-    long int i = 0;
-    ProcList* aux;
-    for (aux = tl; i < starts_at && aux != NULL; i++)
-        aux = aux->prev;
-
-    return aux;
-}
 
 void free_proclist(ProcList* tl) {
     ProcList *aux;
