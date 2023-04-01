@@ -1,5 +1,5 @@
 CC = gcc
-COMPILER_FLAGS = -Wall -Wextra -Wpedantic
+COMPILER_FLAGS = -g -Wall -Wextra -Wpedantic
 SOURCES = ./src/*.c
 INCLUDES = ./include/
 LINKER_FLAGS = -lncurses -lpthread 
