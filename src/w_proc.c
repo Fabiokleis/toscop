@@ -52,12 +52,12 @@ void stat_proc(w_proc* proc) {
         exit(1);
     }
 
-    // pega cada campo do /proc/[pid]/stat separados por espaco e coloca num hashmap
+    // pega cada campo do /proc/[pid]/stat separados por espaco e coloca em uma estrutura 
     // cada processo tem 52 campos no /proc/[pid]/stat (man proc para ver)
-    proc_parse(proc->pdict, stat_file);
+    proc_parse(proc->ptokens, stat_file);
 
     // para verificar a quantidade de estados dos processos
-    switch (proc->pdict[2].value[0]) {
+    switch (proc->ptokens[2].value[0]) {
         case 'S':
             s_procs++;
             break;
@@ -88,12 +88,12 @@ void stat_proc(w_proc* proc) {
 void print_wproc(w_proc* proc) {
 
     printw("\t%s\t%s\t%-18s%s\t%s\t%-24s\t\n", 
-            proc->pdict[0].value, 
-            proc->pdict[2].value, 
+            proc->ptokens[0].value, 
+            proc->ptokens[2].value, 
             proc->owner_name, 
-            proc->pdict[17].value, 
-            proc->pdict[18].value,
-            proc->pdict[1].value
+            proc->ptokens[17].value, 
+            proc->ptokens[18].value,
+            proc->ptokens[1].value
     );
 
 }

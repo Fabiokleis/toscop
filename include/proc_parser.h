@@ -3,12 +3,17 @@
 #include <stdio.h>
 #define LINESZ 1024
 
-typedef struct proc_dict {
-    int key;
+/*
+ * estrutura para guardar uma palavra 
+ * a ideia é pegar cada token separado 
+ * por espacos.
+ */
+typedef struct token {
     char* value;
-} proc_dict;
+} token;
 
 
-void proc_parse(proc_dict pdict[52], FILE* stat_file);
-char* trim_v(char* value);
+void proc_parse(token ptokens[52], FILE* stat_file);
+char* trim_l(char* value);
+char* trim_r(char* value);
 #endif

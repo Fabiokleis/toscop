@@ -9,7 +9,7 @@
  * conteudo de um processo
  */
 typedef struct w_proc {
-    proc_dict pdict[52]; // numero de campos do /proc/[pid]/stat
+    token ptokens[52]; // numero de campos do /proc/[pid]/stat
     char* path;          // caminho absoluto -> /proc/[pid]
     char* owner_name;    // nome do usuario dono da proc
     int uid;             // user id
