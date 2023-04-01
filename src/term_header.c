@@ -20,6 +20,7 @@ int i_procs = 0;
 
 // cria e inicializa os campos do th
 term_header* create_term_header() {
+    // zera todos os contadores caso um novo term_header seja criado
     r_procs = 0;
     s_procs = 0;
     z_procs = 0;

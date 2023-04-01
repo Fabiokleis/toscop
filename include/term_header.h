@@ -31,6 +31,12 @@ typedef struct term_header {
     ProcList* tail;
 } term_header;
 
+// variaveis globais para controlar o numero de processos em cada estado
+extern int r_procs; // running
+extern int s_procs; // sleeping
+extern int z_procs; // zoombie
+extern int i_procs; // idle
+
 
 term_header *create_term_header();
 void init_procs(term_header* th);

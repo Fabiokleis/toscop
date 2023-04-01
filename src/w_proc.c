@@ -11,10 +11,6 @@
 #include "term_header.h"
 #include "proc_parser.h"
 
-extern int r_procs;
-extern int s_procs;
-extern int z_procs;
-extern int i_procs;
 
 w_proc* create_w_proc(long int pid) { 
     w_proc* proc = malloc(sizeof(w_proc));
