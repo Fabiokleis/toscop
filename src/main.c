@@ -10,12 +10,12 @@
 #include "term_header.h"
 
 
-#define MAX_TIME 5.0  // refresh a cada 5 secs
+#define MAX_TIME 1.0  // refresh a cada 5 secs
 
 
 // variaveis globais para gerenciar threads
 static pthread_mutex_t toscop_mutex = PTHREAD_MUTEX_INITIALIZER;
-static int starts_at = 0;
+static long int starts_at = 0;
 static int k_p = 0;
 
 // thread para imprimir todos os processos
@@ -36,7 +36,7 @@ typedef struct term_refresh_t {
 void* refresh_th(void* arg) {
     
     term_refresh_t* trt = arg;
-    struct timespec st, ct = {0, 0};
+    struct timespec st, ct = {0};
 
     // apenas deixa dar join se for sair do programa
     while (k_p != 'q') {
@@ -48,10 +48,13 @@ void* refresh_th(void* arg) {
         // caso tenha passado 5s da refresh 
         if (trt->refresh_t >= MAX_TIME) {
             pthread_mutex_lock(&toscop_mutex);
+            cpu_stats last_stat = trt->th->cpu_stat; // guarda o ultimo valor de cpu usage
 
             tl_free(trt->th); // limpa lista de processos anterior
             trt->th = create_term_header(); // cria nova lista
+            init_cpu_stats(trt->th, last_stat);
             st = ct; // reseta o clock
+            
             
             pthread_mutex_unlock(&toscop_mutex);
         }
@@ -106,7 +109,7 @@ void* print_th(void* arg) {
 
             clear(); // limpa tela 
             tl_print(tpt->th, starts_at);
-            printw("\nt_procs: %d\nstarts_at: %d\n\n", tpt->th->t_procs, starts_at);
+            printw("\nt_procs: %ld\nstarts_at: %ld\n\n", tpt->th->t_procs, starts_at);
             pr_t = clock();
             refresh(); // escrever de fato na tela
 

@@ -22,8 +22,7 @@ w_proc* create_w_proc(long int pid) {
     stat_proc(proc);
 
     // pega o nome do usuario e outras informacos com base no uid do stat_proc
-    struct passwd* r_pwd;
-    r_pwd = getpwuid(proc->uid);
+    struct passwd* r_pwd = getpwuid(proc->uid);
     if (r_pwd == NULL) {
         fprintf(stderr, "ERROR: could not getpwuid of %d %s\n", proc->uid, strerror(errno));
     }
@@ -33,15 +32,16 @@ w_proc* create_w_proc(long int pid) {
     return proc;
 }
 
+// faz o parse do /proc/[pid]/stat, man proc para ver os campos
+/*
+ * 32095 (Isolated Web Co) S 1185 1185 1185 0 -1 4194560 78436 0 0 0 2410 1569 0 0 20 0 27 0 923348 2668761088 47885 18446744073709551615 94866003416480 94866003924768 140731178639232 0 0 0 0 69634 1082133752 0 0 0 17 2 0 0 0 0 0 94866003937056 94866003937160 94866029662208 140731178640931 140731178641165 140731178641165 140731178643423 0
+ */
 void stat_proc(w_proc* proc) {
     
-    // le o /proc/[pid]/stat
-    FILE* stat_file;
     int p_len = strlen(proc->path) + 7;
     char* stat_path = malloc(sizeof(char) * p_len);
     snprintf(stat_path, p_len, "%s/stat", proc->path);
-
-    stat_file = fopen(stat_path, "r");
+    FILE* stat_file = fopen(stat_path, "r");
 
     if (stat_file == NULL) {
         fprintf(stderr, "ERROR: could not read %s with fopen: %s\n", stat_path, strerror(errno));
@@ -50,7 +50,7 @@ void stat_proc(w_proc* proc) {
 
     // pega cada campo do /proc/[pid]/stat separados por espaco e coloca em uma estrutura 
     // cada processo tem 52 campos no /proc/[pid]/stat (man proc para ver)
-    proc_parse(proc->ptokens, stat_file);
+    proc_parse(proc->ptokens, 52, stat_file);
 
     // para verificar a quantidade de estados dos processos
     switch (proc->ptokens[2].value[0]) {
