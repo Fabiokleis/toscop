@@ -23,3 +23,4 @@ trabalho para disciplina de sistemas operacionais
 - https://pubs.opengroup.org/onlinepubs/7908799/xsh/time.h.html        # para entender os variados tipos de tempo e as maneiras de mensura-lo 
 - https://man7.org/linux/man-pages/man3/clock_gettime.3.html           # funcao para obter o tempo a partir de um tipo de CLOCK 
 - https://man7.org/linux/man-pages/man3/getloadavg.3.html              # funcao para obter o loadavg do sistema (sysinfo retorna em long)
+- https://man7.org/linux/man-pages/man1/top.1.html                     # para entender como é calculado os valores de uso do cpu
