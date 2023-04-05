@@ -33,8 +33,9 @@ char* trim_l(char *value) {
  */
 void proc_parse(token* tokens, unsigned long ttokens, FILE* stat_file) {
 
-    char line[LINESZ];
-    fgets(line, LINESZ, stat_file);
+    char *line = NULL;
+    size_t lsz = 0;
+    getline(&line, &lsz, stat_file); // apenas uma linha
     int keys = 0; 
     int until_s = 0; 
     int i = 0;
@@ -73,4 +74,33 @@ void proc_parse(token* tokens, unsigned long ttokens, FILE* stat_file) {
 
 } 
 
+// procura por um char* em um arquivo, caso encontre retorna
+// caso nao encontre retorna o token vazio
+token find_token(char* name, FILE* f) {
+    char *line = NULL;
+    size_t lsz = 0;
+    ssize_t nread;
 
+    while ((nread = getline(&line, &lsz, f)) != -1) {
+        if (strstr(line, name) == line) {
+
+            char* s_val = line + strlen(name); // soma o endereço inicial com o tamanho do name, passando para fim do char*
+            s_val = trim_l(s_val); // remove os espaços a esquerda
+
+
+            // vai até a ocorrencia primeiro espaço antes de terminar o char*
+            char* e_val = s_val;
+            while (!isspace(*e_val)) {
+                e_val++;
+            }
+
+            long v_len = e_val - s_val;
+            char *value = malloc(v_len + 1);
+            memcpy(value, s_val, v_len); // copia o valor para o value
+            value[v_len] = '\0';
+            return (token){ .value = value };
+        }
+    }
+
+    return (token){ .value = "" };
+}

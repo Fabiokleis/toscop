@@ -16,4 +16,6 @@ char* trim_l(char* value);
 char* trim_r(char* value);
 void proc_parse(token *tokens, unsigned long ttokens, FILE* stat_file);
 
+token find_token(char* name, FILE* f);
+
 #endif

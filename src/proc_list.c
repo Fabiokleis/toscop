@@ -1,5 +1,5 @@
-#include "proc_list.h"
-#include "w_proc.h"
+#include "../include/proc_list.h"
+#include "../include/w_proc.h"
 #include <ncurses.h>
 
 ProcList* create_proclist() {
@@ -22,6 +22,7 @@ ProcList* add(ProcList *tl, w_proc* n_proc) {
 
 }
 
+// pega a tail do lista
 ProcList* get_lasttl(ProcList* tl) {
     ProcList* aux, *last;
 
@@ -31,8 +32,9 @@ ProcList* get_lasttl(ProcList* tl) {
     return last;
 }
 
-int get_tprocs(ProcList* tl) {
-    ProcList* aux;
+// calcula o numero total de procs iterando a lista toda
+long get_tprocs(ProcList* tl) {
+    ProcList* aux = NULL;
     int tp = 0;
     if (tl->prev == NULL) {
         aux = tl;
@@ -51,8 +53,8 @@ int get_tprocs(ProcList* tl) {
 }
 
 void print_proclist(ProcList* tl, int starts_at, int max_rows) {
-    long int i = 0;
-    ProcList* aux;
+    long i = 0;
+    ProcList* aux = NULL;
 
 
     // percorre n primeiros
@@ -77,7 +79,7 @@ void print_proclist(ProcList* tl, int starts_at, int max_rows) {
 
 
 void free_proclist(ProcList* tl) {
-    ProcList *aux;
+    ProcList *aux = NULL;
     while (tl != NULL) {
         aux = tl->next;
         proc_free(tl->proc);

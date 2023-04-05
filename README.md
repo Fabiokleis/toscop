@@ -5,7 +5,7 @@ trabalho para disciplina de sistemas operacionais
 # refs
 - https://wiki.inf.ufpr.br/maziero/lib/exe/fetch.php?media=socm:socm-livro.pdf 
 - https://man7.org/linux/man-pages/man2/syscalls.2.html                # lista com todas as syscalls
-- https://man7.org/linux/man-pages/man2/sysinfo.2.html                 # struct para pegar informacoes gerais do sistema (memoria, swap...)
+- https://man7.org/linux/man-pages/man2/sysinfo.2.html                 # struct para pegar informacoes gerais do sistema (memoria, swap, load avg...)
 - https://pubs.opengroup.org/onlinepubs/7908799/xsh/dirent.h.html      # tipo do diretorio, utilizado para ler o /proc/[pid] 
 - https://pubs.opengroup.org/onlinepubs/7908799/xsh/readdir.html       # funcao que retorna um struct dirent
 - https://man7.org/linux/man-pages/man0/sys_stat.h.0p.html             # para entender como pegar informacoes de arquivo com a funcao stat 
@@ -22,5 +22,9 @@ trabalho para disciplina de sistemas operacionais
 - https://linux.die.net/man/3/pthread_mutex_destroy                    # funcao para desalocar um mutex 
 - https://pubs.opengroup.org/onlinepubs/7908799/xsh/time.h.html        # para entender os variados tipos de tempo e as maneiras de mensura-lo 
 - https://man7.org/linux/man-pages/man3/clock_gettime.3.html           # funcao para obter o tempo a partir de um tipo de CLOCK 
-- https://man7.org/linux/man-pages/man3/getloadavg.3.html              # funcao para obter o loadavg do sistema (sysinfo retorna em long)
 - https://man7.org/linux/man-pages/man1/top.1.html                     # para entender como é calculado os valores de uso do cpu
+- https://en.wikipedia.org/wiki/Load_%28computing%29                   # para entender como calcular o load average, ler o /usr/include/linux/sysinfo.h
+- https://man7.org/linux/man-pages/man3/getline.3.html                 # funcao para ler apenas uma linha, troquei o fgets
+- https://man7.org/linux/man-pages/man3/strstr.3.html                  # funcao para copiar bytes de um ponteiro para outro
+- https://man7.org/linux/man-pages/man3/strstr.3.html                  # funcao para verificar se um char* é substr de outro char*
+- https://man7.org/linux/man-pages/man1/free.1.html                    # onde encontrar os campos de memoria e como calcular os campos necessarios

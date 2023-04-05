@@ -7,19 +7,23 @@
 #include <sys/resource.h>
 #include <pwd.h>
 #include <ncurses.h>
-#include "w_proc.h"
-#include "term_header.h"
-#include "proc_parser.h"
+#include <stdbool.h>
+#include "../include/w_proc.h"
+#include "../include/term_header.h"
+#include "../include/proc_parser.h"
 
 
-w_proc* create_w_proc(long int pid) { 
+w_proc* create_w_proc(long pid) { 
     w_proc* proc = malloc(sizeof(w_proc));
 
     proc->path = malloc(sizeof(char) * 18); // /proc/ + 12
     snprintf(proc->path, 18, PROC_PATH"%ld", pid);  // copia o path para dentro do buffer
                                                     
-    // pega informacoes da proc uid, gid
-    stat_proc(proc);
+    // faz o parse do proc
+    // caso nao consiga ler retorna false
+    if (!stat_proc(proc)) {
+        return NULL; // caso ocorra um erro de leitura retorna NULL
+    }
 
     // pega o nome do usuario e outras informacos com base no uid do stat_proc
     struct passwd* r_pwd = getpwuid(proc->uid);
@@ -36,16 +40,16 @@ w_proc* create_w_proc(long int pid) {
 /*
  * 32095 (Isolated Web Co) S 1185 1185 1185 0 -1 4194560 78436 0 0 0 2410 1569 0 0 20 0 27 0 923348 2668761088 47885 18446744073709551615 94866003416480 94866003924768 140731178639232 0 0 0 0 69634 1082133752 0 0 0 17 2 0 0 0 0 0 94866003937056 94866003937160 94866029662208 140731178640931 140731178641165 140731178641165 140731178643423 0
  */
-void stat_proc(w_proc* proc) {
+bool stat_proc(w_proc* proc) {
     
-    int p_len = strlen(proc->path) + 7;
+    int p_len = strlen(proc->path) + 10;
     char* stat_path = malloc(sizeof(char) * p_len);
     snprintf(stat_path, p_len, "%s/stat", proc->path);
     FILE* stat_file = fopen(stat_path, "r");
 
     if (stat_file == NULL) {
         fprintf(stderr, "ERROR: could not read %s with fopen: %s\n", stat_path, strerror(errno));
-        exit(1);
+        return false;
     }
 
     // pega cada campo do /proc/[pid]/stat separados por espaco e coloca em uma estrutura 
@@ -79,6 +83,7 @@ void stat_proc(w_proc* proc) {
     }
     proc->uid = sb.st_uid;
 
+    return true;
 }
 
 void print_wproc(w_proc* proc) {
