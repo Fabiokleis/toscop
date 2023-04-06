@@ -21,7 +21,7 @@ unsigned long z_procs = 0;
 unsigned long i_procs = 0;
 
 // cria e inicializa os campos do th
-term_header* create_term_header() {
+term_header* create_term_header(void) {
     // zera todos os contadores caso um novo term_header seja criado
     r_procs = 0;
     s_procs = 0;
@@ -207,15 +207,15 @@ MiB Swap:  16384.0 total,  16384.0 free,      0.0 used.  10249.2 avail Mem
 
 // mostra as informacoes globais e
 // chama o print da proc_list
-void tl_print(term_header* th, int starts_at) {
-    printw("toscop - %02d:%02d:%02d up %ld days, %ld hours and %ld minutes\n", 
+void tl_print(term_header* th, int starts_at, toscop_wm* wm) {
+    wprintw(wm->main_win, "toscop - %02d:%02d:%02d up %ld days, %ld hours and %ld minutes\n", 
             th->ti->tm_hour, th->ti->tm_min, th->ti->tm_sec,
             th->d_uptime,
             th->h_uptime,
             th->m_uptime
     );
 
-    printw("Procs: %ld total, Threads: %ld, %ld running, %ld sleeping, %ld zombie, %ld idle\n", 
+    wprintw(wm->main_win, "Procs: %ld total, Threads: %ld, %ld running, %ld sleeping, %ld zombie, %ld idle\n", 
             th->t_procs,
             th->t_threads,
             r_procs,
@@ -224,40 +224,40 @@ void tl_print(term_header* th, int starts_at) {
             i_procs
     );
 
-    printw("CPU: %.2f%% used, %.2f%% us, %.2f%% sys, %.2f%% id, ", 
+    wprintw(wm->main_win, "CPU: %.2f%% used, %.2f%% us, %.2f%% sys, %.2f%% id, ", 
             th->cpu_stat.cpu_usage,
             th->cpu_stat.cpu_us, 
             th->cpu_stat.cpu_sys,
             th->cpu_stat.cpu_idle
     );
 
-    printw("load avg: %.2f, %.2f, %.2f\n", th->lavg[0], th->lavg[1], th->lavg[2]);
+    wprintw(wm->main_win, "load avg: %.2f, %.2f, %.2f\n", th->lavg[0], th->lavg[1], th->lavg[2]);
 
 
-    printw("Mem: %.2f total, %.1f used, %.1f free, %.1f shared\n", 
+    wprintw(wm->main_win, "Mem: %.2f total, %.1f used, %.1f free, %.1f shared\n", 
             th->mem_stat.t_mem,
             th->mem_stat.u_mem, 
             th->mem_stat.f_mem,
             th->mem_stat.s_mem
     );
 
-    printw("Mem: %.2f%% used, %2.f%% free, VirtMem: %.1f total\n", 
+    wprintw(wm->main_win, "Mem: %.2f%% used, %2.f%% free, VirtMem: %.1f total\n", 
             th->mem_stat.up_mem, 
             th->mem_stat.fp_mem,
             th->mem_stat.t_vm
     );
 
-    printw("Swap: %.1f total, %.1f free, %.1f used, %.1f buffer/cache\n", 
+    wprintw(wm->main_win, "Swap: %.1f total, %.1f free, %.1f used, %.1f buffer/cache\n", 
             th->mem_stat.t_swap, 
             th->mem_stat.f_swap,
             th->mem_stat.t_swap - th->mem_stat.f_swap,
             th->mem_stat.b_mem + th->mem_stat.c_mem 
     );
-    printw("\n");
-    printw("\tPID\tSTATE\tUSER%-14sPR\tNI\tCOMMAND\n", "");
+    wprintw(wm->main_win,"\n");
+    wprintw(wm->main_win, "  PID\tUSER PR NI S COMMAND\n");
 
     // da print em cada proc
-    print_proclist(th->tail, starts_at, MAX_ROWS + starts_at);
+    print_proclist(th->tail, starts_at, MAX_ROWS + starts_at, wm);
 }
 
 // free no term_header

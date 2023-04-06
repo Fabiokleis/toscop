@@ -1,8 +1,9 @@
 #include "../include/proc_list.h"
 #include "../include/w_proc.h"
+#include <curses.h>
 #include <ncurses.h>
 
-ProcList* create_proclist() {
+ProcList* create_proclist(void) {
    return NULL;
 }
 
@@ -52,7 +53,7 @@ long get_tprocs(ProcList* tl) {
     return tp;
 }
 
-void print_proclist(ProcList* tl, int starts_at, int max_rows) {
+void print_proclist(ProcList* tl, int starts_at, int max_rows, toscop_wm* wm) {
     long i = 0;
     ProcList* aux = NULL;
 
@@ -66,11 +67,12 @@ void print_proclist(ProcList* tl, int starts_at, int max_rows) {
 
         // para destacar o processo atual
         if (i == starts_at) {
-            attron(A_REVERSE); // coloca foreground com a cor do background
-            print_wproc(aux->proc);
-            attroff(A_REVERSE);
+            wattron(wm->main_win, A_REVERSE | A_BLINK); // coloca foreground com a cor do background
+            print_wproc_line(aux->proc, wm->main_win);
+            //print_wproc_win(aux->proc, wm->proc_win);
+            wattroff(wm->main_win, A_REVERSE | A_BLINK);
         } else {
-            print_wproc(aux->proc);
+            print_wproc_line(aux->proc, wm->main_win);
         }
         i++;
 

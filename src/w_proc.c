@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <curses.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -86,18 +87,29 @@ bool stat_proc(w_proc* proc) {
     return true;
 }
 
-void print_wproc(w_proc* proc) {
+void print_wproc_line(w_proc* proc, WINDOW* win) {
 
-    printw("\t%s\t%s\t%-18s%s\t%s\t%-24s\t\n", 
-            proc->ptokens[0].value, 
-            proc->ptokens[2].value, 
+    
+    /* "  PID\tUSER PR NI S COMMAND\n"
+     *
+     * command (1)
+     * state   (2)
+     * pr      (17)
+     * ni      (18)
+     */
+    wprintw(win, "  %s\t%s %s %s %s %s\n", 
+            proc->ptokens[0].value,
             proc->owner_name, 
             proc->ptokens[17].value, 
             proc->ptokens[18].value,
+            proc->ptokens[2].value, 
             proc->ptokens[1].value
     );
 
 }
+
+// TODO: mostrar outras informacoes alem da linha
+//void print_wproc_win(w_proc* wproc, WINDOW* win) {}
 
 void proc_free(w_proc* proc) {
     free(proc->path);

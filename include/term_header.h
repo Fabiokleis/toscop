@@ -2,6 +2,7 @@
 #define __TERM_HEADER_GUARD__
 #include <sys/sysinfo.h>
 #include <time.h>
+#include "toscop_win.h"
 #include "w_proc.h"
 #include "proc_list.h"
 #include "proc_parser.h"
@@ -69,13 +70,13 @@ extern unsigned long z_procs; // zoombie
 extern unsigned long i_procs; // idle
 
 
-term_header* create_term_header();
+term_header* create_term_header(void);
 void init_time_settings(term_header* th);
 void init_mem_settings(term_header* th);
 void init_procs(term_header* th);
 void init_cpu_stats(term_header* th, cpu_stats c_stats);
 void init_loadavg(term_header* th);
-void tl_print(term_header* th, int starts_at);
+void tl_print(term_header* th, int starts_at, toscop_wm* wm);
 void tl_free(term_header* th);
 
 #endif

@@ -2,6 +2,7 @@
 #define __PROC_LIST_HEADER__
 #include <stdio.h>
 #include <stdlib.h>
+#include "toscop_win.h"
 #include "w_proc.h"
 
 typedef struct proc_list {
@@ -10,12 +11,12 @@ typedef struct proc_list {
    struct proc_list *prev;
 } ProcList;
 
-ProcList* create_proclist();
+ProcList* create_proclist(void);
 ProcList* add(ProcList* tl, w_proc* n_proc);
 ProcList* get_lasttl(ProcList* tl);
 long get_tprocs(ProcList* tl);
 
 void free_proclist(ProcList* tl);
-void print_proclist(ProcList *tl, int starts_at, int max_rows);
+void print_proclist(ProcList *tl, int starts_at, int max_rows, toscop_wm* wm);
 
 #endif

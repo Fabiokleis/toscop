@@ -28,3 +28,4 @@ trabalho para disciplina de sistemas operacionais
 - https://man7.org/linux/man-pages/man3/strstr.3.html                  # funcao para copiar bytes de um ponteiro para outro
 - https://man7.org/linux/man-pages/man3/strstr.3.html                  # funcao para verificar se um char* é substr de outro char*
 - https://man7.org/linux/man-pages/man1/free.1.html                    # onde encontrar os campos de memoria e como calcular os campos necessarios
+- https://tldp.org/HOWTO/pdf/NCURSES-Programming-HOWTO.pdf             # livro de ncurses
