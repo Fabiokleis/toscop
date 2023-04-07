@@ -17,7 +17,7 @@ typedef struct proc_list {
 extern ProcList* create_proclist(void);
 extern ProcList* add(ProcList* tl, w_proc* n_proc);
 extern ProcList* get_lasttl(ProcList* tl);
-extern long get_tprocs(ProcList* tl);
+extern unsigned long get_tprocs(ProcList* tl);
 extern void free_proclist(ProcList* tl);
 extern void print_proclist(ProcList *tl, int starts_at, int max_rows, toscop_wm* wm);
 

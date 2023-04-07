@@ -59,11 +59,11 @@ typedef struct term_header {
 
 
 // variaveis globais para controlar o numero de processos em cada estado
-extern unsigned long r_procs; // running
-extern unsigned long s_procs; // sleeping
-extern unsigned long z_procs; // zoombie
-extern unsigned long i_procs; // idle
-
+extern unsigned long r_procs;     // running
+extern unsigned long s_procs;     // sleeping
+extern unsigned long z_procs;     // zoombie
+extern unsigned long i_procs;     // idle
+extern unsigned long total_procs; // numero total de procs
 
 extern term_header* create_term_header(void);
 extern void init_cpu_stats(term_header* th, cpu_stats c_stats);

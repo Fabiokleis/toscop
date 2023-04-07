@@ -11,7 +11,6 @@ typedef struct term_procs {
     ProcList *proc_list;
     ProcList *proc_list_tail;
 
-    long total_procs;
 } term_procs;
 
 extern term_procs* create_term_procs(void);

@@ -5,7 +5,7 @@
 #include "../include/toscop_win.h"
 #include "../include/term_procs.h"
 
-int long starts_at = 0;
+unsigned long starts_at = 0;
 int k_p = 0;
 double refresh_t = 0;
 
@@ -74,7 +74,7 @@ void* print_th(void* arg) {
                     pthread_mutex_lock(&toscop_mutex);
 
                     starts_at++;
-                    starts_at = (starts_at % tpt->tp->total_procs); // limita ate o numero de procs
+                    starts_at = (starts_at % total_procs); // limita ate o numero de procs
 
                     pthread_mutex_unlock(&toscop_mutex);
             } break;
@@ -82,7 +82,7 @@ void* print_th(void* arg) {
             case KEY_UP: {
                     pthread_mutex_lock(&toscop_mutex);
 
-                    starts_at = starts_at - 1 < 0 ? tpt->tp->total_procs - 1 : starts_at - 1;
+                    starts_at = (long int)starts_at - 1 < 0 ? total_procs - 1 : starts_at - 1;
 
                     pthread_mutex_unlock(&toscop_mutex);
             } break;
@@ -97,7 +97,7 @@ void* print_th(void* arg) {
             clear_wm(tpt->wm);                      // limpa todas as win
             th_print(tpt->th, tpt->wm);             // printa o term_header
             tp_print(tpt->tp, tpt->wm, starts_at);  // printa o term_procs
-            wprintw(tpt->wm->proc_win.win, "\n  total_procs: %ld\n  starts_at: %ld\n  refresh_t: %lf\n", tpt->tp->total_procs, starts_at, refresh_t);
+            wprintw(tpt->wm->proc_win.win, "\n  total_procs: %ld\n  starts_at: %ld\n  refresh_t: %lf\n", total_procs, starts_at, refresh_t);
 
             draw_wmborders(tpt->wm);                // desenha borda
 

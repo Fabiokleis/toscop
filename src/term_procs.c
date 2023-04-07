@@ -10,6 +10,7 @@ unsigned long r_procs = 0;
 unsigned long s_procs = 0;
 unsigned long z_procs = 0;
 unsigned long i_procs = 0;
+unsigned long total_procs = 0;
 
 // funcao que deve ser utilizada apenas nesse arquivo
 static void init_procs(term_procs* tp);
@@ -23,7 +24,7 @@ term_procs* create_term_procs(void) {
 // inicializa todos as procs numa lista duplamente encadeada
 static void init_procs(term_procs* tp) {
 
-    long i = 0;
+    unsigned long i = 0;
     DIR* proc_d = opendir("/proc");
     struct dirent* pid_f;
 
@@ -48,9 +49,9 @@ static void init_procs(term_procs* tp) {
         }
     }
 
-    tp->total_procs = i; // total de diretorios lidos
-    if (tp->total_procs == 0 || tp->total_procs != get_tprocs(tp->proc_list)) {
-        fprintf(stderr, "ERROR: could not load process correctly: %ld\n", tp->total_procs);
+    total_procs = i; // total de diretorios lidos
+    if (total_procs == 0 || total_procs != get_tprocs(tp->proc_list)) {
+        fprintf(stderr, "ERROR: could not load process correctly: %ld\n", total_procs);
         exit(1);
     }
     tp->proc_list_tail = get_lasttl(tp->proc_list); // seta para ser o ultimo

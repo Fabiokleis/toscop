@@ -185,7 +185,7 @@ void th_print(term_header* th, toscop_wm* wm) {
     wprintw(
             wm->th_win.win,
             "  Procs: %ld total, Threads: %ld, %ld running, %ld sleeping, %ld zombie, %ld idle\n", 
-            th->t_procs,
+            total_procs,
             th->t_threads,
             r_procs,
             s_procs,

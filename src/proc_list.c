@@ -35,9 +35,9 @@ ProcList* get_lasttl(ProcList* tl) {
 }
 
 // calcula o numero total de procs iterando a lista toda
-long get_tprocs(ProcList* tl) {
+unsigned long get_tprocs(ProcList* tl) {
     ProcList* aux = NULL;
-    int tp = 0;
+    unsigned long tp = 0;
     if (tl->prev == NULL) {
         aux = tl;
         while (aux != NULL) {

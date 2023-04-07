@@ -16,7 +16,7 @@ typedef struct toscop_thread_t {
 } toscop_thread_t;
 
 // variaveis globais das threads
-extern long starts_at;
+extern unsigned long starts_at;
 extern int k_p;
 extern double refresh_t;
 
