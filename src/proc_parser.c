@@ -8,7 +8,7 @@
 
 
 // remove espaços a direita de value
-char* trim_r(char *value) {
+static char* trim_r(char *value) {
 
     int i = 0;
     // quando chegamos num caractere que não espaço
@@ -20,7 +20,7 @@ char* trim_r(char *value) {
 }
 
 // remove espaços a esquerda de value
-char* trim_l(char *value) {
+static char* trim_l(char *value) {
     while (isspace(*value))
         value++;
     return value;

@@ -3,6 +3,6 @@
 #include <pthread.h>
 
 extern pthread_mutex_t toscop_mutex;
-void run(void);
+extern void run(void);
 
 #endif

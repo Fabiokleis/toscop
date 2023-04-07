@@ -9,10 +9,12 @@
 #include <pwd.h>
 #include <ncurses.h>
 #include <stdbool.h>
+#include "../include/toscop_win.h"
 #include "../include/w_proc.h"
 #include "../include/term_header.h"
 #include "../include/proc_parser.h"
 
+static bool stat_proc(w_proc* proc);
 
 w_proc* create_w_proc(long pid) { 
     w_proc* proc = malloc(sizeof(w_proc));
@@ -41,7 +43,7 @@ w_proc* create_w_proc(long pid) {
 /*
  * 32095 (Isolated Web Co) S 1185 1185 1185 0 -1 4194560 78436 0 0 0 2410 1569 0 0 20 0 27 0 923348 2668761088 47885 18446744073709551615 94866003416480 94866003924768 140731178639232 0 0 0 0 69634 1082133752 0 0 0 17 2 0 0 0 0 0 94866003937056 94866003937160 94866029662208 140731178640931 140731178641165 140731178641165 140731178643423 0
  */
-bool stat_proc(w_proc* proc) {
+static bool stat_proc(w_proc* proc) {
     
     int p_len = strlen(proc->path) + 10;
     char* stat_path = malloc(sizeof(char) * p_len);
@@ -87,9 +89,8 @@ bool stat_proc(w_proc* proc) {
     return true;
 }
 
-void print_wproc_line(w_proc* proc, WINDOW* win) {
+void print_wproc_line(w_proc* proc, t_win list_win) {
 
-    
     /* "  PID\tUSER PR NI S COMMAND\n"
      *
      * command (1)
@@ -97,7 +98,9 @@ void print_wproc_line(w_proc* proc, WINDOW* win) {
      * pr      (17)
      * ni      (18)
      */
-    wprintw(win, "  %s\t%s %s %s %s %s\n", 
+    wprintw(
+            list_win.win, 
+            "  %s\t%s %s %s %s %s\n",
             proc->ptokens[0].value,
             proc->owner_name, 
             proc->ptokens[17].value, 
@@ -105,11 +108,10 @@ void print_wproc_line(w_proc* proc, WINDOW* win) {
             proc->ptokens[2].value, 
             proc->ptokens[1].value
     );
-
 }
 
 // TODO: mostrar outras informacoes alem da linha
-//void print_wproc_win(w_proc* wproc, WINDOW* win) {}
+//void print_wproc_win(w_proc* wproc, t_win proc_win) {}
 
 void proc_free(w_proc* proc) {
     free(proc->path);

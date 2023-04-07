@@ -17,15 +17,13 @@ pthread_mutex_t toscop_mutex;
 // inicializa os structs necessarios, screens, e cria as threads do toscop
 // faz o loop principal, o join e limpa todos os recursos utilizados
 void run(void) {
-    init();
-
-    toscop_wm* wm = create_toscop_wm();
     // inicializa ncurses e as window do toscop
+    toscop_wm* wm = create_toscop_wm(); 
 
     // inicializa o unico mutex das threads
     pthread_mutex_init(&toscop_mutex, NULL);
-    // atributo para dar join
-    pthread_attr_t attr;
+    pthread_attr_t attr;     // atributo para dar join
+
     int s = pthread_attr_init(&attr);
 
     if (s != 0) {
@@ -35,13 +33,17 @@ void run(void) {
 
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-    // th tem a lista de processos
+    // th tem as informacoes globais
     term_header* th = create_term_header();
+
+    // tp tem a lista de processos
+    term_procs* tp = create_term_procs();
 
     // thread para printar os processos
     toscop_thread_t print_thread;
     print_thread.thread_id = 0;
     print_thread.th = th;
+    print_thread.tp = tp;
     print_thread.wm = wm;
 
     int st = pthread_create(&print_thread.thread_id, &attr, print_th, &print_thread); // cria thread com loop principal
@@ -54,6 +56,7 @@ void run(void) {
     toscop_thread_t refresh_thread;
     refresh_thread.thread_id = 1;
     refresh_thread.th = th; // aponta para o mesmo th
+    refresh_thread.tp = tp; // aponta para o mesmo tp
     refresh_thread.wm = NULL;
 
     // inicializa a thread que faz o refresh da lista de processos
@@ -68,26 +71,18 @@ void run(void) {
     if (sj < 0) {
         fprintf(stderr, "ERROR: could not join print_thread: %s\n", strerror(errno));
         exit(1);
-    } else {
-        wprintw(wm->main_win, "deu join na thread de print %c\n", k_p);
-        refresh_wm(wm);
-        usleep(1000000);
-    }
+    } 
 
     sj = pthread_join(refresh_thread.thread_id, NULL);
     if (sj < 0) {
         fprintf(stderr, "ERROR: could not join refresh_thread: %s\n", strerror(errno));
         exit(1);
-    } else {
-        wprintw(wm->main_win, "deu join na thread de refresh %c\n", k_p);
-        refresh_wm(wm);
-        usleep(1000000);
-    }
-
+    } 
     // free em tudo que foi usado
     pthread_mutex_destroy(&toscop_mutex);
     pthread_attr_destroy(&attr);
-    tl_free(th);  
+    th_free(th); // limpa infos globais
+    tp_free(tp); // limpa lista de procs
     wm_free(wm); // mata as window
     pthread_exit(NULL);
 }

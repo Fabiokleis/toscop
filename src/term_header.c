@@ -2,7 +2,6 @@
 #include <linux/sysinfo.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <dirent.h>
 #include <errno.h>
 #include <string.h>
 #include <ctype.h>
@@ -15,10 +14,12 @@
 #include "../include/w_proc.h"
 #include "../include/proc_list.h"
 
-unsigned long r_procs = 0;
-unsigned long s_procs = 0;
-unsigned long z_procs = 0;
-unsigned long i_procs = 0;
+
+// funcoes que devem ser utilizadas apenas no term_header 
+static void init_time_settings(term_header* th);
+static void init_mem_settings(term_header* th);
+static void init_loadavg(term_header* th);
+
 
 // cria e inicializa os campos do th
 term_header* create_term_header(void) {
@@ -36,110 +37,15 @@ term_header* create_term_header(void) {
     init_mem_settings(th); // adiciona as informacoes de memoria global
     init_cpu_stats(th, (cpu_stats){0}); // adiona as informacoes de cpu 
     init_loadavg(th); // calcula load average
-    init_procs(th); // adiciona todas as procs
 
 
     return th;
 }
 
-// seta todos os campos de memoria provindos do sysinfo
-// e do /proc/meminfo
-void init_mem_settings(term_header* th) {
-
-    FILE* mem_info = fopen(PROC_PATH"/meminfo", "r");
-    if (mem_info == NULL) {
-        fprintf(stderr, "ERROR: could not read %s with fopen: %s\n", PROC_PATH"/meminfo", strerror(errno));
-        exit(1);
-    }
-
-    long t_m = strtol(find_token("MemTotal:", mem_info).value, NULL, 10);
-    long b_m = strtol(find_token("Buffers:", mem_info).value, NULL, 10);
-    long c_m = strtol(find_token("Cached:", mem_info).value, NULL, 10);
-    long vmsz = strtol(find_token("VmallocTotal:", mem_info).value, NULL, 10);
-
-    // mem settings
-    // sysinfo guarda em bytes
-    // /proc/meminfo guarda em kB
-    mem_stats mem_stat = {
-        .f_mem = th->si.freeram / MB,
-        .s_mem = th->si.sharedram / MB,
-        .t_swap = th->si.totalswap / MB, 
-        .f_swap = th->si.freeswap / MB,
-        .t_mem = t_m / UNIT,   
-        .t_vm = vmsz / UNIT,
-        .b_mem = b_m / UNIT,
-        .c_mem = c_m / UNIT,
-    };
-
-    // man free para ver como é feito o calculo
-    mem_stat.u_mem = mem_stat.t_mem - mem_stat.f_mem - mem_stat.b_mem - mem_stat.c_mem;
-
-    mem_stat.up_mem = mem_stat.u_mem / mem_stat.t_mem * 100.0;
-    mem_stat.fp_mem = mem_stat.f_mem / mem_stat.t_mem * 100.0;
-
-    th->mem_stat = mem_stat;
-    fclose(mem_info);
-
+// compara o struct cpu_stats
+bool cpu_stat_equals(cpu_stats stat1, cpu_stats stat2) {
+    return stat1.total == stat2.total;
 }
-
-// seta todos os campos de hora/data 
-void init_time_settings(term_header* th) {
-    
-    th->ti = malloc(sizeof(struct tm));
-
-    // time settings
-    time_t r_time; 
-    time(&r_time); 
-    th->ti = localtime(&r_time); // inicializa o timeinfo
-
-    th->h_uptime = th->si.uptime / 3600; // horas (1h -> 3600 segundos)
-    th->d_uptime = th->si.uptime / 86400; // dias (1d -> 86400 segundos)
-                                           
-    // (total de minutos do uptime - (quantidade de minutos de 1 dia x total de dias) - total de horas em minutos)
-    th->m_uptime = (th->si.uptime / 60) - (th->d_uptime * 1440) - (th->h_uptime * 60); 
-}
-
-// inicializa todos as procs numa lista duplamente encadeada
-void init_procs(term_header* th) {
-
-    long i = 0;
-    DIR* proc_d = opendir("/proc");
-    struct dirent* pid_f;
-
-    if (proc_d == NULL) {
-        fprintf(stderr, "ERROR: could not read /proc with opendir: %s\n", strerror(errno));
-        exit(1);
-    }
-
-    // cria lista duplamente encadeada
-    th->proc_list = create_proclist();
-    ProcList* aux = create_proclist();
-
-    // le cada arquivo do /proc que começa com numero, os pids (processos)
-    while ((pid_f = readdir(proc_d))) {
-        if (!isdigit(*pid_f->d_name))
-            continue;
-
-        aux = add(th->proc_list, create_w_proc(strtol(pid_f->d_name, NULL, 10)));
-        if (aux != th->proc_list) {
-            th->proc_list = aux;
-            i++;
-        }
-    }
-
-    th->t_procs = i; // total de diretorios lidos
-    if (th->t_procs == 0 || th->t_procs != get_tprocs(th->proc_list)) {
-        fprintf(stderr, "ERROR: could not load process correctly: %ld\n", th->t_procs);
-        exit(1);
-    }
-
-    // obtem numero de threads
-    th->t_threads = th->si.procs; 
-
-    th->tail = get_lasttl(th->proc_list); // seta para ser o ultimo
-    closedir(proc_d);
-}
-
 
 // faz o parse do /proc/stat e guarda numa estrutura,
 // man proc para ver os campos, e calcula os valores de uso do cpu 
@@ -188,8 +94,67 @@ void init_cpu_stats(term_header *th, cpu_stats c_stats) {
     fclose(stat_file);
 }
 
+
+// seta todos os campos de memoria provindos do sysinfo
+// e do /proc/meminfo
+static void init_mem_settings(term_header* th) {
+
+    FILE* mem_info = fopen(PROC_PATH"/meminfo", "r");
+    if (mem_info == NULL) {
+        fprintf(stderr, "ERROR: could not read %s with fopen: %s\n", PROC_PATH"/meminfo", strerror(errno));
+        exit(1);
+    }
+
+    long t_m = strtol(find_token("MemTotal:", mem_info).value, NULL, 10);
+    long b_m = strtol(find_token("Buffers:", mem_info).value, NULL, 10);
+    long c_m = strtol(find_token("Cached:", mem_info).value, NULL, 10);
+    long vmsz = strtol(find_token("VmallocTotal:", mem_info).value, NULL, 10);
+
+    // mem settings
+    // sysinfo guarda em bytes
+    // /proc/meminfo guarda em kB
+    mem_stats mem_stat = {
+        .f_mem = th->si.freeram / MB,
+        .s_mem = th->si.sharedram / MB,
+        .t_swap = th->si.totalswap / MB, 
+        .f_swap = th->si.freeswap / MB,
+        .t_mem = t_m / UNIT,   
+        .t_vm = vmsz / UNIT,
+        .b_mem = b_m / UNIT,
+        .c_mem = c_m / UNIT,
+    };
+
+    // man free para ver como é feito o calculo
+    mem_stat.u_mem = mem_stat.t_mem - mem_stat.f_mem - mem_stat.b_mem - mem_stat.c_mem;
+
+    mem_stat.up_mem = mem_stat.u_mem / mem_stat.t_mem * 100.0;
+    mem_stat.fp_mem = mem_stat.f_mem / mem_stat.t_mem * 100.0;
+
+    th->mem_stat = mem_stat;
+    fclose(mem_info);
+
+}
+
+// seta todos os campos de hora/data 
+static void init_time_settings(term_header* th) {
+    
+    th->ti = malloc(sizeof(struct tm));
+
+    // time settings
+    time_t r_time; 
+    time(&r_time); 
+    th->ti = localtime(&r_time); // inicializa o timeinfo
+
+    th->h_uptime = th->si.uptime / 3600 % 24; // horas (1h -> 3600 segundos) 24 horas
+    th->d_uptime = th->si.uptime / 86400; // dias (1d -> 86400 segundos)
+                                           
+    // (total de minutos do uptime - (quantidade de minutos de 1 dia x total de dias) - total de horas em minutos)
+    th->m_uptime = (th->si.uptime / 60) - (th->d_uptime * 1440) - (th->h_uptime * 60); 
+}
+
+
 // calcula o loadavg com base nos valores do struct sysinfo
-void init_loadavg(term_header *th) {
+static void init_loadavg(term_header *th) {
     // veja o /usr/include/linux/sysinfo.h para entender como calcular
     th->lavg[0] = th->si.loads[0] / (double) (1 << SI_LOAD_SHIFT);
     th->lavg[1] = th->si.loads[1] / (double) (1 << SI_LOAD_SHIFT);
@@ -205,17 +170,21 @@ MiB Swap:  16384.0 total,  16384.0 free,      0.0 used.  10249.2 avail Mem
 */
 
 
-// mostra as informacoes globais e
-// chama o print da proc_list
-void tl_print(term_header* th, int starts_at, toscop_wm* wm) {
-    wprintw(wm->main_win, "toscop - %02d:%02d:%02d up %ld days, %ld hours and %ld minutes\n", 
+// mostra as informacoes globais: cpu memoria e threads 
+void th_print(term_header* th, toscop_wm* wm) {
+
+    wprintw(
+            wm->th_win.win,
+            "\n  toscop - %02d:%02d:%02d up %ld days, %ld hours and %ld minutes\n",
             th->ti->tm_hour, th->ti->tm_min, th->ti->tm_sec,
             th->d_uptime,
             th->h_uptime,
             th->m_uptime
     );
 
-    wprintw(wm->main_win, "Procs: %ld total, Threads: %ld, %ld running, %ld sleeping, %ld zombie, %ld idle\n", 
+    wprintw(
+            wm->th_win.win,
+            "  Procs: %ld total, Threads: %ld, %ld running, %ld sleeping, %ld zombie, %ld idle\n", 
             th->t_procs,
             th->t_threads,
             r_procs,
@@ -224,44 +193,50 @@ void tl_print(term_header* th, int starts_at, toscop_wm* wm) {
             i_procs
     );
 
-    wprintw(wm->main_win, "CPU: %.2f%% used, %.2f%% us, %.2f%% sys, %.2f%% id, ", 
+    wprintw(
+            wm->th_win.win, 
+            "  CPU: %.2f%% used, %.2f%% us, %.2f%% sys, %.2f%% id, ",
             th->cpu_stat.cpu_usage,
             th->cpu_stat.cpu_us, 
             th->cpu_stat.cpu_sys,
             th->cpu_stat.cpu_idle
     );
 
-    wprintw(wm->main_win, "load avg: %.2f, %.2f, %.2f\n", th->lavg[0], th->lavg[1], th->lavg[2]);
+    wprintw(
+            wm->th_win.win,
+            "load avg: %.2f, %.2f, %.2f\n",
+            th->lavg[0], th->lavg[1], th->lavg[2]
+    );
 
 
-    wprintw(wm->main_win, "Mem: %.2f total, %.1f used, %.1f free, %.1f shared\n", 
+    wprintw(
+            wm->th_win.win,
+            "  Mem: %.2f total, %.1f used, %.1f free, %.1f shared\n", 
             th->mem_stat.t_mem,
             th->mem_stat.u_mem, 
             th->mem_stat.f_mem,
             th->mem_stat.s_mem
     );
 
-    wprintw(wm->main_win, "Mem: %.2f%% used, %2.f%% free, VirtMem: %.1f total\n", 
+    wprintw(
+            wm->th_win.win,
+            "  Mem: %.2f%% used, %2.f%% free, VirtMem: %.1f total\n", 
             th->mem_stat.up_mem, 
             th->mem_stat.fp_mem,
             th->mem_stat.t_vm
     );
 
-    wprintw(wm->main_win, "Swap: %.1f total, %.1f free, %.1f used, %.1f buffer/cache\n", 
+    wprintw(
+            wm->th_win.win,
+            "  Swap: %.1f total, %.1f free, %.1f used, %.1f buffer/cache\n", 
             th->mem_stat.t_swap, 
             th->mem_stat.f_swap,
             th->mem_stat.t_swap - th->mem_stat.f_swap,
             th->mem_stat.b_mem + th->mem_stat.c_mem 
     );
-    wprintw(wm->main_win,"\n");
-    wprintw(wm->main_win, "  PID\tUSER PR NI S COMMAND\n");
-
-    // da print em cada proc
-    print_proclist(th->tail, starts_at, MAX_ROWS + starts_at, wm);
 }
 
 // free no term_header
-void tl_free(term_header* th) {
-    free_proclist(th->proc_list); 
+void th_free(term_header* th) {
     free(th);
 }

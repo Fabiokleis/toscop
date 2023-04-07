@@ -8,7 +8,6 @@
 #include "proc_parser.h"
 #define PROC_PATH "/proc/"
 #define LINESZ 1024
-#define MAX_ROWS 25
 #define MB (double) (1024*1024) // bytes to MB
 #define UNIT (double) 1024      // kB to MB
 
@@ -48,18 +47,14 @@ typedef struct term_header {
     struct sysinfo si;        // campo sysinfo contem inumeras informaçoes do sistema
     struct tm* ti;            // campo timeinfo contem informacoes de tempo
     token ktokens[11];        // primeira linha do /proc/stat, contendo informacoes do cpu
-
     cpu_stats cpu_stat;       // valores de tempo de uso do cpu, em secs e em %
     mem_stats mem_stat;       // informacoes de memoria obtidos via sysinfo, e feito os calculos de %
     double lavg[3];           // loadavg do sistema
-    long d_uptime;
-    long h_uptime;
-    long m_uptime;
-    long t_procs;              // total de processos
-    long t_threads;            // total de threads de todos os processos (/proc/[pid]/task/*)
-
-    ProcList* proc_list;
-    ProcList* tail;
+    long d_uptime;            // tempo em sec dos dias
+    long h_uptime;            // tempo em sec das horas
+    long m_uptime;            // tempo em sec dos minutos
+    long t_procs;             // total de processos
+    long t_threads;           // total de threads de todos os processos (/proc/[pid]/task/*)
 } term_header;
 
 
@@ -70,13 +65,10 @@ extern unsigned long z_procs; // zoombie
 extern unsigned long i_procs; // idle
 
 
-term_header* create_term_header(void);
-void init_time_settings(term_header* th);
-void init_mem_settings(term_header* th);
-void init_procs(term_header* th);
-void init_cpu_stats(term_header* th, cpu_stats c_stats);
-void init_loadavg(term_header* th);
-void tl_print(term_header* th, int starts_at, toscop_wm* wm);
-void tl_free(term_header* th);
+extern term_header* create_term_header(void);
+extern void init_cpu_stats(term_header* th, cpu_stats c_stats);
+extern bool cpu_stat_equals(cpu_stats stat1, cpu_stats stat2);
+extern void th_print(term_header* th, toscop_wm* wm);
+extern void th_free(term_header* th);
 
 #endif
