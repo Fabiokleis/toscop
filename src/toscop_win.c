@@ -43,7 +43,7 @@ static void init(void) {
         init_pair(1, COLOR_WHITE, COLOR_BLACK);
         init_pair(2, COLOR_GREEN, COLOR_BLACK);
 
-        //wbkgd(stdscr, COLOR_PAIR(1));
+        wbkgd(stdscr, COLOR_PAIR(1));
     }
 }
 

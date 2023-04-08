@@ -81,7 +81,7 @@ void* print_th(void* arg) {
             case KEY_UP: {
                     pthread_mutex_lock(&toscop_mutex);
 
-                    starts_at = (long)starts_at - 1 < 0 ? total_procs - 1 : starts_at - 1;
+                    starts_at = (long) starts_at - 1 < 0 ? total_procs - 1 : starts_at - 1;
 
                     pthread_mutex_unlock(&toscop_mutex);
             } break;
