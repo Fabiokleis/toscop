@@ -1,7 +1,6 @@
 #ifndef __PROC_PARSER_HEADER__
 #define __PROC_PARSER_HEADER__
 #include <stdio.h>
-#define LINESZ 1024
 
 /*
  * estrutura para guardar uma palavra 

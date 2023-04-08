@@ -1,7 +1,6 @@
 #ifndef __TERM_PROCS_HEADER__
 #define __TERM_PROCS_HEADER__
 #include "proc_list.h"
-#include "toscop_win.h"
 
 /*
  * estrutra que guarda todos os processos

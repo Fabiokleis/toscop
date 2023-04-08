@@ -1,6 +1,4 @@
-#include <curses.h>
 #include <stdlib.h>
-#include <ncurses.h>
 #include "../include/toscop_win.h"
 
 static t_win create_t_win(int h, int w, int x, int y);
@@ -21,10 +19,11 @@ toscop_wm* create_toscop_wm() {
     t_win w_proc = create_t_win(LINES / 4, COLS / 4, th_win.width + MARGIN, 0);  
 
     // window de cada sessao do toscop
-
     wm->th_win = th_win;
     wm->tp_win = tp_win;
     wm->proc_win = w_proc;
+
+    wm->c_win = TH_WIN; // seta por padrao como a win da lista de procs com foco
 
     return wm; 
 }
@@ -37,8 +36,16 @@ static void init(void) {
     keypad(stdscr, TRUE); // para capturar as setinhas
     curs_set(FALSE); 
     noecho();
-}
 
+    // caso tenha cores seta as cores do toscop
+    if (has_colors()) {
+        start_color(); 
+        init_pair(1, COLOR_WHITE, COLOR_BLACK);
+        init_pair(2, COLOR_GREEN, COLOR_BLACK);
+
+        //wbkgd(stdscr, COLOR_PAIR(1));
+    }
+}
 
 // cria uma wrapper da window do ncurses 
 static t_win create_t_win(int h, int w, int x, int y) {
@@ -51,11 +58,34 @@ static t_win create_t_win(int h, int w, int x, int y) {
     };
 }
 
+// alterna entre as window
+void tab_win(toscop_wm* wm) {
+    wm->c_win = (wm->c_win + 1) % (PROC_WIN + 1); // proc_win é a ultima window
+}
+
 // desenha as bordas das telas principais
 void draw_wmborders(toscop_wm* wm) {
+
     box(wm->th_win.win, 0, 0);
     box(wm->tp_win.win, 0, 0);
     box(wm->proc_win.win, 0, 0);
+
+    switch (wm->c_win) {
+        case TH_WIN: {
+            DRAW_BORDER(wm->th_win.win, COLOR_PAIR(2));
+        } break;
+
+        case TP_WIN: {
+            DRAW_BORDER(wm->tp_win.win, COLOR_PAIR(2));
+        } break;
+
+        case PROC_WIN: {
+            DRAW_BORDER(wm->proc_win.win, COLOR_PAIR(2));
+        } break;
+
+        default: {
+        } break;
+    }
 }
 
 // escreve nas telas principais do toscop

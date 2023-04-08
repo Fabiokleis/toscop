@@ -1,19 +1,9 @@
-#include <curses.h>
-#include <linux/sysinfo.h>
-#include <stdio.h>
+#include <sys/sysinfo.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include <ctype.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <time.h>
-#include <ncurses.h>
 #include "../include/term_header.h"
-#include "../include/w_proc.h"
-#include "../include/proc_list.h"
-
 
 // funcoes que devem ser utilizadas apenas no term_header 
 static void init_time_settings(term_header* th);
@@ -31,7 +21,7 @@ term_header* create_term_header(void) {
     
     term_header *th = malloc(sizeof(term_header)); 
     sysinfo(&th->si); // inicializa sysinfo que contem varias informacoes do sistema
-
+    th->t_threads = th->si.procs;
 
     init_time_settings(th); // cria todos campos de tempo/data
     init_mem_settings(th); // adiciona as informacoes de memoria global
@@ -53,7 +43,6 @@ bool cpu_stat_equals(cpu_stats stat1, cpu_stats stat2) {
  * cpu  209917 419 128259 18553662 18180 5 8314 0 0 0
  *
  */
-
 void init_cpu_stats(term_header *th, cpu_stats c_stats) {
 
     FILE* stat_file = fopen(PROC_PATH"/stat", "r");
@@ -127,8 +116,8 @@ static void init_mem_settings(term_header* th) {
     // man free para ver como é feito o calculo
     mem_stat.u_mem = mem_stat.t_mem - mem_stat.f_mem - mem_stat.b_mem - mem_stat.c_mem;
 
-    mem_stat.up_mem = mem_stat.u_mem / mem_stat.t_mem * 100.0;
-    mem_stat.fp_mem = mem_stat.f_mem / mem_stat.t_mem * 100.0;
+    mem_stat.up_mem = ((double) mem_stat.u_mem / mem_stat.t_mem) * 100.0;
+    mem_stat.fp_mem = ((double) mem_stat.f_mem / mem_stat.t_mem) * 100.0;
 
     th->mem_stat = mem_stat;
     fclose(mem_info);
@@ -174,65 +163,63 @@ MiB Swap:  16384.0 total,  16384.0 free,      0.0 used.  10249.2 avail Mem
 void th_print(term_header* th, toscop_wm* wm) {
 
     wprintw(
-            wm->th_win.win,
-            "\n  toscop - %02d:%02d:%02d up %ld days, %ld hours and %ld minutes\n",
-            th->ti->tm_hour, th->ti->tm_min, th->ti->tm_sec,
-            th->d_uptime,
-            th->h_uptime,
-            th->m_uptime
+        wm->th_win.win,
+        "\n  Toscop - %02d:%02d:%02d up %ld days, %ld:%ld, ",
+        th->ti->tm_hour, th->ti->tm_min, th->ti->tm_sec,
+        th->d_uptime,
+        th->h_uptime,
+        th->m_uptime
+    );
+    wprintw(
+        wm->th_win.win,
+        "load avg: %.2f, %.2f, %.2f\n",
+        th->lavg[0], th->lavg[1], th->lavg[2]
     );
 
     wprintw(
-            wm->th_win.win,
-            "  Procs: %ld total, Threads: %ld, %ld running, %ld sleeping, %ld zombie, %ld idle\n", 
-            total_procs,
-            th->t_threads,
-            r_procs,
-            s_procs,
-            z_procs,
-            i_procs
+        wm->th_win.win,
+        "  Procs: %ld total, Threads: %ld, %ld running, %ld sleeping, %ld zombie, %ld idle\n", 
+        total_procs,
+        th->t_threads,
+        r_procs,
+        s_procs,
+        z_procs,
+        i_procs
     );
 
     wprintw(
-            wm->th_win.win, 
-            "  CPU: %.2f%% used, %.2f%% us, %.2f%% sys, %.2f%% id, ",
-            th->cpu_stat.cpu_usage,
-            th->cpu_stat.cpu_us, 
-            th->cpu_stat.cpu_sys,
-            th->cpu_stat.cpu_idle
+        wm->th_win.win, 
+        "  Cpu%%: %.2f%% used, %.2f%% us, %.2f%% sys, %.2f%% idle\n",
+        th->cpu_stat.cpu_usage,
+        th->cpu_stat.cpu_us, 
+        th->cpu_stat.cpu_sys,
+        th->cpu_stat.cpu_idle
     );
 
     wprintw(
-            wm->th_win.win,
-            "load avg: %.2f, %.2f, %.2f\n",
-            th->lavg[0], th->lavg[1], th->lavg[2]
-    );
-
-
-    wprintw(
-            wm->th_win.win,
-            "  Mem: %.2f total, %.1f used, %.1f free, %.1f shared\n", 
-            th->mem_stat.t_mem,
-            th->mem_stat.u_mem, 
-            th->mem_stat.f_mem,
-            th->mem_stat.s_mem
+        wm->th_win.win,
+        "  Mem%%: %.2f%% used, %2.f%% free, VirtMem MB: %lu total\n", 
+        th->mem_stat.up_mem, 
+        th->mem_stat.fp_mem,
+        th->mem_stat.t_vm
     );
 
     wprintw(
-            wm->th_win.win,
-            "  Mem: %.2f%% used, %2.f%% free, VirtMem: %.1f total\n", 
-            th->mem_stat.up_mem, 
-            th->mem_stat.fp_mem,
-            th->mem_stat.t_vm
+        wm->th_win.win,
+        "  Mem MB: %lu total, %lu used, %lu free, %lu shared\n", 
+        th->mem_stat.t_mem,
+        th->mem_stat.u_mem, 
+        th->mem_stat.f_mem,
+        th->mem_stat.s_mem
     );
 
     wprintw(
-            wm->th_win.win,
-            "  Swap: %.1f total, %.1f free, %.1f used, %.1f buffer/cache\n", 
-            th->mem_stat.t_swap, 
-            th->mem_stat.f_swap,
-            th->mem_stat.t_swap - th->mem_stat.f_swap,
-            th->mem_stat.b_mem + th->mem_stat.c_mem 
+        wm->th_win.win,
+        "  Swap: %lu total, %lu free, %lu used, %lu buffer/cache\n", 
+        th->mem_stat.t_swap, 
+        th->mem_stat.f_swap,
+        th->mem_stat.t_swap - th->mem_stat.f_swap,
+        th->mem_stat.b_mem + th->mem_stat.c_mem 
     );
 }
 

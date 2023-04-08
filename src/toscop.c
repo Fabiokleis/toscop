@@ -1,12 +1,6 @@
-#include <bits/time.h>
-#include <curses.h>
-#include <stdio.h>
-#include <ncurses.h>
-#include <time.h>
-#include <pthread.h>
-#include <errno.h>
+#include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+#include <errno.h>
 #include "../include/toscop.h"
 #include "../include/term_header.h"
 #include "../include/toscop_thread.h"

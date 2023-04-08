@@ -68,7 +68,9 @@ void tp_free(term_procs *tp) {
 
 // printa a lista de procs
 void tp_print(term_procs* tp, toscop_wm* wm, int starts_at){
-    // da print em cada proc
+    wattron(wm->tp_win.win, A_BOLD);
     wprintw(wm->tp_win.win, "\n  PID\tUSER PR NI S COMMAND\n");
+    wattroff(wm->tp_win.win, A_BOLD);
+
     print_proclist(tp->proc_list_tail, starts_at, MAX_ROWS + starts_at, wm);
 }

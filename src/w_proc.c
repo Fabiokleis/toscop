@@ -1,22 +1,15 @@
-#include <ctype.h>
-#include <curses.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pwd.h>
 #include <errno.h>
 #include <sys/stat.h>
-#include <sys/resource.h>
-#include <pwd.h>
-#include <ncurses.h>
-#include <stdbool.h>
-#include "../include/toscop_win.h"
+#include <unistd.h>
 #include "../include/w_proc.h"
 #include "../include/term_header.h"
-#include "../include/proc_parser.h"
 
 static bool stat_proc(w_proc* proc);
 
-w_proc* create_w_proc(long pid) { 
+w_proc* create_w_proc(unsigned long pid) { 
     w_proc* proc = malloc(sizeof(w_proc));
 
     proc->path = malloc(sizeof(char) * 18); // /proc/ + 12
@@ -39,6 +32,7 @@ w_proc* create_w_proc(long pid) {
     return proc;
 }
 
+
 // faz o parse do /proc/[pid]/stat, man proc para ver os campos
 /*
  * 32095 (Isolated Web Co) S 1185 1185 1185 0 -1 4194560 78436 0 0 0 2410 1569 0 0 20 0 27 0 923348 2668761088 47885 18446744073709551615 94866003416480 94866003924768 140731178639232 0 0 0 0 69634 1082133752 0 0 0 17 2 0 0 0 0 0 94866003937056 94866003937160 94866029662208 140731178640931 140731178641165 140731178641165 140731178643423 0
@@ -57,7 +51,12 @@ static bool stat_proc(w_proc* proc) {
 
     // pega cada campo do /proc/[pid]/stat separados por espaco e coloca em uma estrutura 
     // cada processo tem 52 campos no /proc/[pid]/stat (man proc para ver)
+    // sysconf(_SC_PAGESIZE) deve retornar o tamanho de uma pagina (padrao 4096 bytes)
     proc_parse(proc->ptokens, 52, stat_file);
+    proc->pr_mem = strtol(proc->ptokens[23].value, NULL, 10); // rss total de paginas do proc
+    proc->r_mem = proc->pr_mem * sysconf(_SC_PAGESIZE) / MB;  // rss total em MB do proc
+    proc->pv_mem = strtol(proc->ptokens[22].value, NULL, 10) / sysconf(_SC_PAGESIZE); // vmsize em paginas do proc
+    proc->v_mem = proc->pv_mem * sysconf(_SC_PAGESIZE) / MB; // vmsize total em MB do proc
 
     // para verificar a quantidade de estados dos processos
     switch (proc->ptokens[2].value[0]) {
@@ -91,27 +90,38 @@ static bool stat_proc(w_proc* proc) {
 
 void print_wproc_line(w_proc* proc, t_win list_win) {
 
-    /* "  PID\tUSER PR NI S COMMAND\n"
+    /* "  PID\tUSER PR NI S RSS COMMAND\n"
      *
      * command (1)
      * state   (2)
+     * session (6)
      * pr      (17)
      * ni      (18)
      */
     wprintw(
-            list_win.win, 
-            "  %s\t%s %s %s %s %s\n",
-            proc->ptokens[0].value,
-            proc->owner_name, 
-            proc->ptokens[17].value, 
-            proc->ptokens[18].value,
-            proc->ptokens[2].value, 
-            proc->ptokens[1].value
+        list_win.win, 
+        "  %s\t%s %s %s %s %s\n",
+        proc->ptokens[0].value,
+        proc->owner_name, 
+        proc->ptokens[17].value, 
+        proc->ptokens[18].value,
+        proc->ptokens[2].value,
+        proc->ptokens[1].value
     );
 }
 
-// TODO: mostrar outras informacoes alem da linha
-//void print_wproc_win(w_proc* wproc, t_win proc_win) {}
+// mostra mais informacoes do processo
+void print_wproc_win(w_proc* wproc, t_win proc_win) {
+    /*  
+     * num_threads (19)
+     * vsize       (22)
+     * rss         (23)
+     */
+    wprintw(proc_win.win, "\n  PID %s\n", wproc->ptokens[0].value);
+    wprintw(proc_win.win, "  threads: %s\n", wproc->ptokens[19].value);
+    wprintw(proc_win.win, "  vsize: %lu MB, pages: %lu total\n", wproc->v_mem, wproc->pv_mem);
+    wprintw(proc_win.win, "  rss: %lu MB, pages: %lu total\n", wproc->r_mem, wproc->pr_mem);
+}
 
 void proc_free(w_proc* proc) {
     free(proc->path);

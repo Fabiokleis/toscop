@@ -1,7 +1,5 @@
 #ifndef __PROC_LIST_HEADER__
 #define __PROC_LIST_HEADER__
-#include <stdio.h>
-#include <stdlib.h>
 #include "toscop_win.h"
 #include "w_proc.h"
 

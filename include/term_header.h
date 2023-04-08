@@ -1,15 +1,13 @@
-#ifndef __TERM_HEADER_GUARD__
-#define __TERM_HEADER_GUARD__
-#include <sys/sysinfo.h>
-#include <time.h>
+#ifndef __TERM_HEADER__
+#define __TERM_HEADER__
+#include <linux/sysinfo.h>
 #include "toscop_win.h"
-#include "w_proc.h"
-#include "proc_list.h"
 #include "proc_parser.h"
+
 #define PROC_PATH "/proc/"
 #define LINESZ 1024
-#define MB (double) (1024*1024) // bytes to MB
-#define UNIT (double) 1024      // kB to MB
+#define MB (long) (1024*1024) // bytes to MB
+#define UNIT (long) 1024      // kB to MB
 
 // estrutura para guardar os valores de tempo de uso em sec e % de uso do cpu
 typedef struct cpu_stats {
@@ -26,15 +24,15 @@ typedef struct cpu_stats {
 
 // estrutura para guardar os valores de memoria
 typedef struct mem_stats {
-    double t_mem;            // mem total                         
-    double f_mem;            // mem free 
-    double b_mem;            // mem alocada por buffers
-    double s_mem;            // mem compartilhada
-    double t_swap;           // swap total              
-    double f_swap;           // swap free               
-    double t_vm;             // vm total
-    double c_mem;            // cached memory
-    double u_mem;            // used memory
+    unsigned long t_mem;            // mem total                         
+    unsigned long f_mem;            // mem free 
+    unsigned long b_mem;            // mem alocada por buffers
+    unsigned long s_mem;            // mem compartilhada
+    unsigned long t_swap;           // swap total              
+    unsigned long f_swap;           // swap free               
+    unsigned long t_vm;             // vm total
+    unsigned long c_mem;            // cached memory
+    unsigned long u_mem;            // used memory
 
     double fp_mem;           // % de mem free
     double up_mem;           // % de mem usada

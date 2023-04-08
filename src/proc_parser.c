@@ -1,9 +1,6 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-#include <errno.h>
-#include <ncurses.h>
 #include "../include/proc_parser.h"
 
 

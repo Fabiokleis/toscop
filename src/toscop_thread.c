@@ -1,9 +1,5 @@
-#include <curses.h>
-#include <ncurses.h>
 #include "../include/toscop.h"
 #include "../include/toscop_thread.h"
-#include "../include/toscop_win.h"
-#include "../include/term_procs.h"
 
 unsigned long starts_at = 0;
 int k_p = 0;
@@ -58,7 +54,6 @@ void* refresh_th(void* arg) {
 void* print_th(void* arg) {
 
     toscop_thread_t* tpt = arg;
-
   
     clock_t pr_t = clock();
     double p_t = 0;
@@ -70,6 +65,10 @@ void* print_th(void* arg) {
 
         // para poder navegar entre os processos
         switch (k_p) {
+            case 9: { // 9 é o codigo da tecla tab
+                tab_win(tpt->wm);
+            } break;
+
             case KEY_DOWN: {
                     pthread_mutex_lock(&toscop_mutex);
 
@@ -82,7 +81,7 @@ void* print_th(void* arg) {
             case KEY_UP: {
                     pthread_mutex_lock(&toscop_mutex);
 
-                    starts_at = (long int)starts_at - 1 < 0 ? total_procs - 1 : starts_at - 1;
+                    starts_at = (long)starts_at - 1 < 0 ? total_procs - 1 : starts_at - 1;
 
                     pthread_mutex_unlock(&toscop_mutex);
             } break;
@@ -97,12 +96,11 @@ void* print_th(void* arg) {
             clear_wm(tpt->wm);                      // limpa todas as win
             th_print(tpt->th, tpt->wm);             // printa o term_header
             tp_print(tpt->tp, tpt->wm, starts_at);  // printa o term_procs
-            wprintw(tpt->wm->proc_win.win, "\n  total_procs: %ld\n  starts_at: %ld\n  refresh_t: %lf\n", total_procs, starts_at, refresh_t);
-
+            mvprintw(LINES - 10, 1, "\n  c_window: %d\n  total_procs: %lu\n  starts_at: %lu\n  refresh_t: %lf\n", tpt->wm->c_win, total_procs, starts_at, refresh_t);
             draw_wmborders(tpt->wm);                // desenha borda
-
             pr_t = clock();      // reseta clock
             refresh_wm(tpt->wm); // escrever de fato na tela
+            refresh();
 
             pthread_mutex_unlock(&toscop_mutex);
 

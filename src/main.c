@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "../include/toscop.h"
 
 int main() {

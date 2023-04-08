@@ -1,8 +1,5 @@
+#include <stdlib.h>
 #include "../include/proc_list.h"
-#include "../include/w_proc.h"
-#include <curses.h>
-#include <ncurses.h>
-
 
 ProcList* create_proclist(void) {
     return NULL;
@@ -70,8 +67,9 @@ void print_proclist(ProcList* tl, int starts_at, int max_rows, toscop_wm* wm) {
         if (i == starts_at) {
             wattron(wm->tp_win.win, A_REVERSE); // coloca foreground com a cor do background
             print_wproc_line(aux->proc, wm->tp_win);
-            //print_wproc_win(aux->proc, wm->proc_win);
             wattroff(wm->tp_win.win, A_REVERSE);
+            print_wproc_win(aux->proc, wm->proc_win);
+
         } else {
             print_wproc_line(aux->proc, wm->tp_win);
         }
