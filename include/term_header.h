@@ -65,7 +65,6 @@ extern uint64_t total_procs; // numero total de procs
 
 extern term_header* create_term_header(void);
 extern void init_cpu_stats(term_header* th, cpu_stats c_stats);
-extern bool cpu_stat_equals(cpu_stats stat1, cpu_stats stat2);
 extern void th_print(term_header* th, toscop_wm* wm);
 extern void th_free(term_header* th);
 

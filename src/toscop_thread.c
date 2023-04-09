@@ -22,31 +22,39 @@ void* refresh_th(void* arg) {
         refresh_t = (ct.tv_sec - st.tv_sec) + ((ct.tv_nsec - st.tv_nsec) / N_TO_S); // nanosec por sec
 
 
-        // pega o 
-        if (refresh_t == MAX_TIME - 1 && !cpu_stat_equals(trt->th->cpu_stat, last_stat))
+        if (refresh_t == MAX_TIME - 1)
             last_stat = trt->th->cpu_stat;
 
         // caso tenha passado MAX_TIME sec da refresh 
         if (refresh_t >= MAX_TIME) {
-
             pthread_mutex_lock(&toscop_mutex);
 
-            th_free(trt->th); // limpa informacoes globais anterior
-            trt->th = create_term_header(); // cria as novas informacoes
-           
             tp_free(trt->tp); // limpa lista de procs anterior
             trt->tp = create_term_procs(); // cria nova lista
 
+            // calcula % cpu
+            th_free(trt->th); // limpa informacoes globais anterior
+            trt->th = create_term_header(); // cria as novas informacoes
             init_cpu_stats(trt->th, last_stat); // calcula delta
-            st = ct; // reseta o clock
-            
-            refresh_t = 0;
-            
-            pthread_mutex_unlock(&toscop_mutex);
-       }
 
+            st = ct; // reseta o clock
+            refresh_t = 0;
+
+            pthread_mutex_unlock(&toscop_mutex);
+        }
     } 
     pthread_exit(NULL);
+}
+
+// limita ate o maximo de procs
+static void inc_starts_at(uint64_t* st_at) { 
+    (*st_at)++; 
+    *st_at = *st_at % total_procs;
+}
+
+// limita ate 0, se passar vai para o ultimo proc
+static void sub_starts_at(uint64_t* st_at) {
+    *st_at = (int64_t) *st_at - 1 < 0 ? total_procs - 1 : *st_at - 1;
 }
 
 // thread com loop principal
@@ -65,25 +73,18 @@ void* print_th(void* arg) {
 
         // para poder navegar entre os processos
         switch (k_p) {
+
             case 9: { // 9 é o codigo da tecla tab
                 tab_win(tpt->wm);
+
             } break;
 
             case KEY_DOWN: {
-                    pthread_mutex_lock(&toscop_mutex);
-
-                    starts_at++;
-                    starts_at = (starts_at % total_procs); // limita ate o numero de procs
-
-                    pthread_mutex_unlock(&toscop_mutex);
+                MUTEX_FUNC(&toscop_mutex, inc_starts_at, &starts_at);
             } break;
 
             case KEY_UP: {
-                    pthread_mutex_lock(&toscop_mutex);
-
-                    starts_at = (int64_t) starts_at - 1 < 0 ? total_procs - 1 : starts_at - 1;
-
-                    pthread_mutex_unlock(&toscop_mutex);
+                MUTEX_FUNC(&toscop_mutex, sub_starts_at, &starts_at);
             } break;
 
             default:

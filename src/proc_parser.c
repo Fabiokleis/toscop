@@ -8,8 +8,8 @@
 static char* trim_r(char *value) {
 
     int i = 0;
-    // quando chegamos num caractere que não espaço
-    // podemos descatar todos os espaços anteriores
+    // quando chegamos num caractere que não é espaço
+    // podemos descartar todos os espaços anteriores
     for (i = strlen(value) - 1; isspace(value[i]); i--);
     value[i + 1] = '\0'; // seta para ser o ultimo caractere do char*
 
@@ -74,6 +74,7 @@ void proc_parse(token* tokens, uint64_t ttokens, FILE* stat_file) {
 
 // procura por um char* em um arquivo, caso encontre retorna
 // caso nao encontre retorna o token vazio
+// e nao poem a leitura no inicio do arquivo
 token find_token(char* name, FILE* f) {
     char *line = NULL;
     size_t lsz = 0;

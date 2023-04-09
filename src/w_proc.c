@@ -122,7 +122,7 @@ static bool stat_proc(w_proc* proc) {
 
 void print_wproc_line(w_proc* proc, t_win list_win) {
 
-    /* "  PID\tUSER PR NI S COMMAND\n"
+    /* "     PID USER      PR NI S COMMAND\n"
      *
      * command (1)
      * state   (2)
@@ -132,7 +132,7 @@ void print_wproc_line(w_proc* proc, t_win list_win) {
      */
     wprintw(
         list_win.win, 
-        "  %s\t%s %s %s %s %s\n",
+        " %7s %-8.8s %4s %3s %1s %s\n",
         proc->ptokens[0].value,
         proc->owner_name, 
         proc->ptokens[17].value, 

@@ -1,6 +1,7 @@
 #include <curses.h>
 #include <ncurses.h>
 #include <stdlib.h>
+#include "../include/toscop.h"
 #include "../include/toscop_win.h"
 
 static void init(void);
@@ -129,5 +130,4 @@ void wm_free(toscop_wm* wm) {
     delwin(wm->proc_win.win);
     endwin();
 }
-
 

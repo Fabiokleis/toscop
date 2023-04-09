@@ -20,13 +20,13 @@ typedef struct w_proc {
     uint64_t pv_mem;       // total de paginas de vm do processo
 
     uint64_t stack_pages;  // total de paginas da stack
-    uint64_t stack_size;   // total em mb da stack
+    uint64_t stack_size;   // total em kB da stack
 
     uint64_t heap_pages;   // total de paginas da heap
-    uint64_t heap_size;    // total em mb da heap
+    uint64_t heap_size;    // total em kB da heap
 
     uint64_t text_pages;   // total de paginas do text
-    uint64_t text_size;    // total em mb do text
+    uint64_t text_size;    // total em kB do text
 } w_proc;
 
 extern w_proc* create_w_proc(uint64_t pid);

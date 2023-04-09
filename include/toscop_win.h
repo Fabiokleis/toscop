@@ -15,7 +15,7 @@
     wattroff(WIN, ATTR); \
 } while(0)
 
-// wrapper da windows com suas informacoes basicas
+// wrapper da window com suas informacoes basicas
 typedef struct t_win {
     WINDOW* win;
     int width;

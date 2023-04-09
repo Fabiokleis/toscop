@@ -32,11 +32,6 @@ term_header* create_term_header(void) {
     return th;
 }
 
-// compara o struct cpu_stats
-bool cpu_stat_equals(cpu_stats stat1, cpu_stats stat2) {
-    return stat1.total == stat2.total;
-}
-
 // faz o parse do /proc/stat e guarda numa estrutura,
 // man proc para ver os campos, e calcula os valores de uso do cpu 
 /* 
@@ -224,7 +219,7 @@ void th_print(term_header* th, toscop_wm* wm) {
     FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", sysconf(_SC_PAGESIZE));
     wprintw(wm->th_win.win, " bytes\n");
 
-    // globla swap size
+    // global swap size
     wprintw(wm->th_win.win, "  Swap: ");
     FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", th->mem_stat.t_swap);
     wprintw(wm->th_win.win, " total, ");
