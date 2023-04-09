@@ -166,19 +166,19 @@ void print_wproc_win(w_proc* wproc, t_win proc_win) {
 
     wprintw(proc_win.win, "  stack: ");
     FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->stack_size);
-    wprintw(proc_win.win, " MB, pages: ");
+    wprintw(proc_win.win, " kB, pages: ");
     FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->stack_pages);
     wprintw(proc_win.win, " total\n");
 
     wprintw(proc_win.win, "  heap: ");
     FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->heap_size);
-    wprintw(proc_win.win, " MB, pages: ");
+    wprintw(proc_win.win, " kB, pages: ");
     FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->heap_pages);
     wprintw(proc_win.win, " total\n");
 
     wprintw(proc_win.win, "  text/code: ");
     FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->text_size);
-    wprintw(proc_win.win, " MB, pages: ");
+    wprintw(proc_win.win, " kB, pages: ");
     FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->text_pages);
     wprintw(proc_win.win, " total\n");
 }
