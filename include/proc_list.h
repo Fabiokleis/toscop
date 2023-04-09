@@ -2,7 +2,7 @@
 #define __PROC_LIST_HEADER__
 #include "toscop_win.h"
 #include "w_proc.h"
-
+#include <stdint.h>
 /*
  * lista duplamente encadeada para guardar a struct do proc
  */
@@ -15,8 +15,8 @@ typedef struct proc_list {
 extern ProcList* create_proclist(void);
 extern ProcList* add(ProcList* tl, w_proc* n_proc);
 extern ProcList* get_lasttl(ProcList* tl);
-extern unsigned long get_tprocs(ProcList* tl);
+extern uint64_t get_tprocs(ProcList* tl);
 extern void free_proclist(ProcList* tl);
-extern void print_proclist(ProcList *tl, int starts_at, int max_rows, toscop_wm* wm);
+extern void print_proclist(ProcList *tl, int64_t starts_at, uint32_t max_rows, toscop_wm* wm);
 
 #endif

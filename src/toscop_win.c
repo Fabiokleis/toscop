@@ -1,8 +1,11 @@
+#include <curses.h>
+#include <ncurses.h>
 #include <stdlib.h>
 #include "../include/toscop_win.h"
 
-static t_win create_t_win(int h, int w, int x, int y);
 static void init(void);
+static void init_wmcolors(toscop_wm* wm);
+static inline t_win create_t_win(int h, int w, int x, int y);
 
 // cria do gerenciador de window do toscop 
 toscop_wm* create_toscop_wm() {
@@ -25,7 +28,32 @@ toscop_wm* create_toscop_wm() {
 
     wm->c_win = TH_WIN; // seta por padrao como a win da lista de procs com foco
 
+    init_wmcolors(wm);
     return wm; 
+}
+
+static void init_wmcolors(toscop_wm* wm) {
+    // caso tenha cores seta as cores do toscop
+    if (has_colors() && can_change_color()) {
+        start_color(); 
+        // o black fica grey as vezes, entao faço init manualmente
+        init_color(COLOR_BLACK, 0, 0, 0); 
+
+
+        // default color
+        init_pair(1, COLOR_WHITE, COLOR_BLACK);
+        // proc line color
+        init_pair(2, COLOR_WHITE, COLOR_CYAN);
+        // border color
+        init_pair(3, COLOR_CYAN, COLOR_BLACK);
+
+
+        wbkgd(stdscr, COLOR_PAIR(1));
+        wbkgd(wm->th_win.win, COLOR_PAIR(1));
+        wbkgd(wm->tp_win.win, COLOR_PAIR(1));
+        wbkgd(wm->proc_win.win, COLOR_PAIR(1));
+    }
+
 }
 
 static void init(void) {
@@ -36,19 +64,10 @@ static void init(void) {
     keypad(stdscr, TRUE); // para capturar as setinhas
     curs_set(FALSE); 
     noecho();
-
-    // caso tenha cores seta as cores do toscop
-    if (has_colors()) {
-        start_color(); 
-        init_pair(1, COLOR_WHITE, COLOR_BLACK);
-        init_pair(2, COLOR_GREEN, COLOR_BLACK);
-
-        wbkgd(stdscr, COLOR_PAIR(1));
-    }
 }
 
 // cria uma wrapper da window do ncurses 
-static t_win create_t_win(int h, int w, int x, int y) {
+static inline t_win create_t_win(int h, int w, int x, int y) {
     return (t_win){
         .height = h,
         .width = w,
@@ -72,15 +91,15 @@ void draw_wmborders(toscop_wm* wm) {
 
     switch (wm->c_win) {
         case TH_WIN: {
-            DRAW_BORDER(wm->th_win.win, COLOR_PAIR(2));
+            FORMAT(box, wm->th_win.win, COLOR_PAIR(3), 0, 0);
         } break;
 
         case TP_WIN: {
-            DRAW_BORDER(wm->tp_win.win, COLOR_PAIR(2));
+            FORMAT(box, wm->tp_win.win, COLOR_PAIR(3), 0, 0);
         } break;
 
         case PROC_WIN: {
-            DRAW_BORDER(wm->proc_win.win, COLOR_PAIR(2));
+            FORMAT(box, wm->proc_win.win, COLOR_PAIR(3), 0, 0);
         } break;
 
         default: {

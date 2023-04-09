@@ -8,10 +8,10 @@
 #define TH_HEIGHT (2 * MARGIN + 6)
 #define TP_HEIGHT (2 * MARGIN + MAX_ROWS)
 
-// macro para nao ficar chamando toda hora on e of em cada window
-#define DRAW_BORDER(WIN, ATTR) do { \
+// macro para printar qualquer coisa com um atributo
+#define FORMAT(FUNC, WIN, ATTR, ...) do { \
     wattron(WIN, ATTR); \
-    box(WIN, 0, 0); \
+    FUNC(WIN, __VA_ARGS__); \
     wattroff(WIN, ATTR); \
 } while(0)
 

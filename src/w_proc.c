@@ -1,3 +1,5 @@
+#include <curses.h>
+#include <ncurses.h>
 #include <stdlib.h>
 #include <string.h>
 #include <pwd.h>
@@ -7,9 +9,10 @@
 #include "../include/w_proc.h"
 #include "../include/term_header.h"
 
+static void init_mem(w_proc* proc);
 static bool stat_proc(w_proc* proc);
 
-w_proc* create_w_proc(unsigned long pid) { 
+w_proc* create_w_proc(uint64_t pid) { 
     w_proc* proc = malloc(sizeof(w_proc));
 
     proc->path = malloc(sizeof(char) * 18); // /proc/ + 12
@@ -20,6 +23,7 @@ w_proc* create_w_proc(unsigned long pid) {
     if (!stat_proc(proc)) {
         return NULL; // caso ocorra um erro de leitura retorna NULL
     }
+    init_mem(proc); // inicializa todos os campos de memoria (rss, vmsize, heap, stack, text)
 
     // pega o nome do usuario e outras informacos com base no uid do stat_proc
     struct passwd* r_pwd = getpwuid(proc->uid);
@@ -32,6 +36,37 @@ w_proc* create_w_proc(unsigned long pid) {
     return proc;
 }
 
+// calcula o numero de pagina de cada campo de memoria e seu tamanho em MB
+static void init_mem(w_proc* proc) {
+
+    // sysconf(_SC_PAGESIZE) deve retornar o tamanho de uma pagina (padrao 4096 bytes)
+
+    proc->pv_mem = strtoul(proc->ptokens[22].value, NULL, 10) / sysconf(_SC_PAGESIZE); // vmsize em paginas do proc
+    proc->v_mem = proc->pv_mem * sysconf(_SC_PAGESIZE) / MB; // vmsize total em MB do proc
+    proc->pr_mem = strtol(proc->ptokens[23].value, NULL, 10); // rss total de paginas do proc
+    proc->r_mem = proc->pr_mem * sysconf(_SC_PAGESIZE) / MB;  // rss total em MB do proc
+    
+    // man proc (/proc/[pid]/status)
+    int p_len = strlen(proc->path) + 10;
+    char* status_path = malloc(sizeof(char) * p_len);
+    snprintf(status_path, p_len, "%s/status", proc->path);
+    FILE *proc_status = fopen(status_path, "r");
+
+    // stack, heap e text
+
+    proc->heap_size = strtoul(find_token("VmData:", proc_status).value, NULL, 10); // size em kB
+    proc->heap_pages = proc->heap_size * 1024 / sysconf(_SC_PAGESIZE);
+
+    proc->stack_size = strtoul(find_token("VmStk:", proc_status).value, NULL, 10); // size em kB
+    proc->stack_pages = proc->stack_size * 1024 / sysconf(_SC_PAGESIZE);
+
+    proc->text_size = strtoul(find_token("VmExe:", proc_status).value, NULL, 10); // size me kB
+    proc->text_pages = proc->text_size * 1024 / sysconf(_SC_PAGESIZE);
+
+        
+    fclose(proc_status);
+    free(status_path);
+}
 
 // faz o parse do /proc/[pid]/stat, man proc para ver os campos
 /*
@@ -51,13 +86,8 @@ static bool stat_proc(w_proc* proc) {
 
     // pega cada campo do /proc/[pid]/stat separados por espaco e coloca em uma estrutura 
     // cada processo tem 52 campos no /proc/[pid]/stat (man proc para ver)
-    // sysconf(_SC_PAGESIZE) deve retornar o tamanho de uma pagina (padrao 4096 bytes)
     proc_parse(proc->ptokens, 52, stat_file);
-    proc->pr_mem = strtol(proc->ptokens[23].value, NULL, 10); // rss total de paginas do proc
-    proc->r_mem = proc->pr_mem * sysconf(_SC_PAGESIZE) / MB;  // rss total em MB do proc
-    proc->pv_mem = strtol(proc->ptokens[22].value, NULL, 10) / sysconf(_SC_PAGESIZE); // vmsize em paginas do proc
-    proc->v_mem = proc->pv_mem * sysconf(_SC_PAGESIZE) / MB; // vmsize total em MB do proc
-
+    
     // para verificar a quantidade de estados dos processos
     switch (proc->ptokens[2].value[0]) {
         case 'S':
@@ -77,6 +107,8 @@ static bool stat_proc(w_proc* proc) {
     }
 
     fclose(stat_file);
+    free(stat_path);
+
     struct stat sb;
 
     if (stat(proc->path, &sb) == -1) {
@@ -90,7 +122,7 @@ static bool stat_proc(w_proc* proc) {
 
 void print_wproc_line(w_proc* proc, t_win list_win) {
 
-    /* "  PID\tUSER PR NI S RSS COMMAND\n"
+    /* "  PID\tUSER PR NI S COMMAND\n"
      *
      * command (1)
      * state   (2)
@@ -115,12 +147,40 @@ void print_wproc_win(w_proc* wproc, t_win proc_win) {
     /*  
      * num_threads (19)
      * vsize       (22)
-     * rss         (23)
      */
-    wprintw(proc_win.win, "\n  PID %s\n", wproc->ptokens[0].value);
-    wprintw(proc_win.win, "  threads: %s\n", wproc->ptokens[19].value);
-    wprintw(proc_win.win, "  vsize: %lu MB, pages: %lu total\n", wproc->v_mem, wproc->pv_mem);
-    wprintw(proc_win.win, "  rss: %lu MB, pages: %lu total\n", wproc->r_mem, wproc->pr_mem);
+    
+    FORMAT(wprintw, proc_win.win, COLOR_PAIR(2) | A_BOLD, "\n  PID %s \n", wproc->ptokens[0].value);
+    wprintw(proc_win.win, "  threads: ");
+    FORMAT(wprintw, proc_win.win, A_BOLD, "%s\n", wproc->ptokens[19].value);
+    wprintw(proc_win.win, "  vsize: ");
+    FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->v_mem);
+    wprintw(proc_win.win, " MB, pages: ");
+    FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->pv_mem);
+    wprintw(proc_win.win, " total\n");
+
+    wprintw(proc_win.win, "  rss: ");
+    FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->r_mem);
+    wprintw(proc_win.win, " MB, pages: ");
+    FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->pr_mem);
+    wprintw(proc_win.win, " total\n");
+
+    wprintw(proc_win.win, "  stack: ");
+    FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->stack_size);
+    wprintw(proc_win.win, " MB, pages: ");
+    FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->stack_pages);
+    wprintw(proc_win.win, " total\n");
+
+    wprintw(proc_win.win, "  heap: ");
+    FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->heap_size);
+    wprintw(proc_win.win, " MB, pages: ");
+    FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->heap_pages);
+    wprintw(proc_win.win, " total\n");
+
+    wprintw(proc_win.win, "  text/code: ");
+    FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->text_size);
+    wprintw(proc_win.win, " MB, pages: ");
+    FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->text_pages);
+    wprintw(proc_win.win, " total\n");
 }
 
 void proc_free(w_proc* proc) {

@@ -1,9 +1,9 @@
 #include "../include/toscop.h"
 #include "../include/toscop_thread.h"
 
-unsigned long starts_at = 0;
 int k_p = 0;
 double refresh_t = 0;
+uint64_t starts_at = 0;
 
 // thread para atualizar a lista de processos
 void* refresh_th(void* arg) {
@@ -81,7 +81,7 @@ void* print_th(void* arg) {
             case KEY_UP: {
                     pthread_mutex_lock(&toscop_mutex);
 
-                    starts_at = (long) starts_at - 1 < 0 ? total_procs - 1 : starts_at - 1;
+                    starts_at = (int64_t) starts_at - 1 < 0 ? total_procs - 1 : starts_at - 1;
 
                     pthread_mutex_unlock(&toscop_mutex);
             } break;

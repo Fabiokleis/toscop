@@ -3,13 +3,13 @@
 #include <errno.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 #include "../include/term_header.h"
 
 // funcoes que devem ser utilizadas apenas no term_header 
 static void init_time_settings(term_header* th);
 static void init_mem_settings(term_header* th);
 static void init_loadavg(term_header* th);
-
 
 // cria e inicializa os campos do th
 term_header* create_term_header(void) {
@@ -25,7 +25,7 @@ term_header* create_term_header(void) {
 
     init_time_settings(th); // cria todos campos de tempo/data
     init_mem_settings(th); // adiciona as informacoes de memoria global
-    init_cpu_stats(th, (cpu_stats){0}); // adiona as informacoes de cpu 
+    init_cpu_stats(th, (cpu_stats){0}); // adiciona as informacoes de cpu 
     init_loadavg(th); // calcula load average
 
 
@@ -56,10 +56,10 @@ void init_cpu_stats(term_header *th, cpu_stats c_stats) {
     // man top - 2b. TASK and CPU States
 
     // secs cpu
-    long user = strtol(th->ktokens[1].value, NULL, 10) + 
+    int64_t user = strtol(th->ktokens[1].value, NULL, 10) + 
         strtol(th->ktokens[2].value, NULL, 10);
 
-    long system = strtol(th->ktokens[3].value, NULL, 10) +
+    int64_t system = strtol(th->ktokens[3].value, NULL, 10) +
         strtol(th->ktokens[6].value, NULL, 10) +
         strtol(th->ktokens[7].value, NULL, 10);
 
@@ -94,10 +94,10 @@ static void init_mem_settings(term_header* th) {
         exit(1);
     }
 
-    long t_m = strtol(find_token("MemTotal:", mem_info).value, NULL, 10);
-    long b_m = strtol(find_token("Buffers:", mem_info).value, NULL, 10);
-    long c_m = strtol(find_token("Cached:", mem_info).value, NULL, 10);
-    long vmsz = strtol(find_token("VmallocTotal:", mem_info).value, NULL, 10);
+    int64_t t_m = strtol(find_token("MemTotal:", mem_info).value, NULL, 10);
+    int64_t b_m = strtol(find_token("Buffers:", mem_info).value, NULL, 10);
+    int64_t c_m = strtol(find_token("Cached:", mem_info).value, NULL, 10);
+    int64_t vmsz = strtol(find_token("VmallocTotal:", mem_info).value, NULL, 10);
 
     // mem settings
     // sysinfo guarda em bytes
@@ -120,8 +120,8 @@ static void init_mem_settings(term_header* th) {
     mem_stat.fp_mem = ((double) mem_stat.f_mem / mem_stat.t_mem) * 100.0;
 
     th->mem_stat = mem_stat;
-    fclose(mem_info);
 
+    fclose(mem_info);
 }
 
 // seta todos os campos de hora/data 
@@ -164,7 +164,7 @@ void th_print(term_header* th, toscop_wm* wm) {
 
     wprintw(
         wm->th_win.win,
-        "\n  Toscop - %02d:%02d:%02d up %ld days, %ld:%ld, ",
+        "\n  Toscop - %02d:%02d:%02d up %ld days, %02ld hours, %02ld minutes, ",
         th->ti->tm_hour, th->ti->tm_min, th->ti->tm_sec,
         th->d_uptime,
         th->h_uptime,
@@ -176,51 +176,64 @@ void th_print(term_header* th, toscop_wm* wm) {
         th->lavg[0], th->lavg[1], th->lavg[2]
     );
 
-    wprintw(
-        wm->th_win.win,
-        "  Procs: %ld total, Threads: %ld, %ld running, %ld sleeping, %ld zombie, %ld idle\n", 
-        total_procs,
-        th->t_threads,
-        r_procs,
-        s_procs,
-        z_procs,
-        i_procs
-    );
+    // global procs
+    wprintw(wm->th_win.win, "  Procs: ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", total_procs);
+    wprintw(wm->th_win.win, " total, Threads: ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", th->t_threads);
+    wprintw(wm->th_win.win, ", ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", r_procs);
+    wprintw(wm->th_win.win, " running, ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", s_procs);
+    wprintw(wm->th_win.win, " sleeping, ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", z_procs);
+    wprintw(wm->th_win.win, " zoombie, ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", i_procs);
+    wprintw(wm->th_win.win, " idle\n");
 
-    wprintw(
-        wm->th_win.win, 
-        "  Cpu%%: %.2f%% used, %.2f%% us, %.2f%% sys, %.2f%% idle\n",
-        th->cpu_stat.cpu_usage,
-        th->cpu_stat.cpu_us, 
-        th->cpu_stat.cpu_sys,
-        th->cpu_stat.cpu_idle
-    );
+    // global cpu usage
+    wprintw(wm->th_win.win, "  Cpu%%: ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%.2f%%", th->cpu_stat.cpu_usage);
+    wprintw(wm->th_win.win, " used, ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%.2f%%", th->cpu_stat.cpu_us);
+    wprintw(wm->th_win.win, " us, ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%.2f%%", th->cpu_stat.cpu_sys);
+    wprintw(wm->th_win.win, " sys, ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%.2f%%", th->cpu_stat.cpu_idle);
+    wprintw(wm->th_win.win, " idle\n");
 
-    wprintw(
-        wm->th_win.win,
-        "  Mem%%: %.2f%% used, %2.f%% free, VirtMem MB: %lu total\n", 
-        th->mem_stat.up_mem, 
-        th->mem_stat.fp_mem,
-        th->mem_stat.t_vm
-    );
+    // global mem usage
+    wprintw(wm->th_win.win, "  Mem%%: ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%.2f%%", th->mem_stat.up_mem);
+    wprintw(wm->th_win.win, " used, ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%.2f%%", th->mem_stat.fp_mem);
+    wprintw(wm->th_win.win, " free, VmSize: ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", th->mem_stat.t_vm);
+    wprintw(wm->th_win.win, " total\n");
 
-    wprintw(
-        wm->th_win.win,
-        "  Mem MB: %lu total, %lu used, %lu free, %lu shared\n", 
-        th->mem_stat.t_mem,
-        th->mem_stat.u_mem, 
-        th->mem_stat.f_mem,
-        th->mem_stat.s_mem
-    );
+    // global mem size
+    wprintw(wm->th_win.win, "  Mem: ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", th->mem_stat.t_mem);
+    wprintw(wm->th_win.win, " total, ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", th->mem_stat.u_mem);
+    wprintw(wm->th_win.win, " used, ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", th->mem_stat.f_mem);
+    wprintw(wm->th_win.win, " free, ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%ld", th->mem_stat.s_mem);
+    wprintw(wm->th_win.win, " shared, page size: ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", sysconf(_SC_PAGESIZE));
+    wprintw(wm->th_win.win, " bytes\n");
 
-    wprintw(
-        wm->th_win.win,
-        "  Swap: %lu total, %lu free, %lu used, %lu buffer/cache\n", 
-        th->mem_stat.t_swap, 
-        th->mem_stat.f_swap,
-        th->mem_stat.t_swap - th->mem_stat.f_swap,
-        th->mem_stat.b_mem + th->mem_stat.c_mem 
-    );
+    // globla swap size
+    wprintw(wm->th_win.win, "  Swap: ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", th->mem_stat.t_swap);
+    wprintw(wm->th_win.win, " total, ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", th->mem_stat.t_swap - th->mem_stat.f_swap);
+    wprintw(wm->th_win.win, " used, ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", th->mem_stat.f_swap);
+    wprintw(wm->th_win.win, " free, ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%ld", th->mem_stat.b_mem + th->mem_stat.c_mem);
+    wprintw(wm->th_win.win, " buffer/cache\n");
 }
 
 // free no term_header

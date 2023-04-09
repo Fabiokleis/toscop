@@ -28,7 +28,7 @@ static char* trim_l(char *value) {
  * separado por espaco e guardando no token
  * espera que tokens e stat_path sejam validos
  */
-void proc_parse(token* tokens, unsigned long ttokens, FILE* stat_file) {
+void proc_parse(token* tokens, uint64_t ttokens, FILE* stat_file) {
 
     char *line = NULL;
     size_t lsz = 0;
@@ -65,10 +65,11 @@ void proc_parse(token* tokens, unsigned long ttokens, FILE* stat_file) {
     }
 
     // da trim em cada value de cada token 
-    for (unsigned long i = 0; i < ttokens; i++) {
+    for (uint64_t i = 0; i < ttokens; i++) {
         tokens[i].value = trim_l(trim_r(tokens[i].value));
     }
 
+    free(line);
 } 
 
 // procura por um char* em um arquivo, caso encontre retorna
@@ -91,13 +92,15 @@ token find_token(char* name, FILE* f) {
                 e_val++;
             }
 
-            long v_len = e_val - s_val;
+            int64_t v_len = e_val - s_val;
             char *value = malloc(v_len + 1);
             memcpy(value, s_val, v_len); // copia o valor para o value
             value[v_len] = '\0';
+            free(line);
             return (token){ .value = value };
         }
     }
 
+    free(line);
     return (token){ .value = "" };
 }

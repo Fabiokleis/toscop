@@ -30,3 +30,4 @@ trabalho para disciplina de sistemas operacionais
 - https://man7.org/linux/man-pages/man1/free.1.html                    # onde encontrar os campos de memoria e como calcular os campos necessarios
 - https://tldp.org/HOWTO/pdf/NCURSES-Programming-HOWTO.pdf             # livro de ncurses
 - https://man7.org/linux/man-pages/man2/getpagesize.2.html             # como ler um tamanho portavel de pagina (syscall sysconf(_SC_PAGESIZE))
+- https://man7.org/linux/man-pages/man0/stdint.h.0p.html               # tipos long, long long, unsigned long... de uma maneira mais concisa

@@ -6,11 +6,11 @@
 #include "../include/term_procs.h"
 
 // define as variaveis de estado dos procs para o term_header
-unsigned long r_procs = 0;
-unsigned long s_procs = 0;
-unsigned long z_procs = 0;
-unsigned long i_procs = 0;
-unsigned long total_procs = 0;
+uint64_t r_procs = 0;
+uint64_t s_procs = 0;
+uint64_t z_procs = 0;
+uint64_t i_procs = 0;
+uint64_t total_procs = 0;
 
 // funcao que deve ser utilizada apenas nesse arquivo
 static void init_procs(term_procs* tp);
@@ -24,7 +24,7 @@ term_procs* create_term_procs(void) {
 // inicializa todos as procs numa lista duplamente encadeada
 static void init_procs(term_procs* tp) {
 
-    unsigned long i = 0;
+    uint64_t i = 0;
     DIR* proc_d = opendir("/proc");
     struct dirent* pid_f;
 
@@ -61,16 +61,15 @@ static void init_procs(term_procs* tp) {
 
 // limpa a lista de processos e o term_procs
 void tp_free(term_procs *tp) {
-    //free_proclist(tp->proc_list);
     free_proclist(tp->proc_list_tail);
     free(tp);
 }
 
 // printa a lista de procs
-void tp_print(term_procs* tp, toscop_wm* wm, int starts_at){
+void tp_print(term_procs* tp, toscop_wm* wm, uint64_t starts_at){
     wattron(wm->tp_win.win, A_BOLD);
     wprintw(wm->tp_win.win, "\n  PID\tUSER PR NI S COMMAND\n");
     wattroff(wm->tp_win.win, A_BOLD);
 
-    print_proclist(tp->proc_list_tail, starts_at, MAX_ROWS + starts_at, wm);
+    print_proclist(tp->proc_list_tail, starts_at, (uint64_t)MAX_ROWS + starts_at, wm);
 }
