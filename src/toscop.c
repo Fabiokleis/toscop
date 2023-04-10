@@ -1,12 +1,65 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <getopt.h>
+#include <ctype.h>
 #include "../include/toscop.h"
 #include "../include/term_header.h"
 #include "../include/toscop_thread.h"
 #include "../include/toscop_win.h"
 
 pthread_mutex_t toscop_mutex;
+bool fdebug = false;
+double max_time = 0; // definida via argv
+
+static void print_usage(const char* msg) {
+    fprintf(stderr, "%s\nUsage: toscop [-vdN] [-v verboso, -dN tempo de atualização (suporta double)]\n", msg);
+    exit(1);
+}
+
+// interface com linha de comando para parametrizar algumas coisas
+void cli(int argc, char **argv) {
+    if (argc > 3) {
+        print_usage("Foi passado mais argumentos dos que são possíveis.");
+    }
+
+    int arg = 0;
+    char *secs = NULL;
+    while ((arg = getopt(argc, argv, "vd:")) != -1) { // : indica que precisa de um arg
+        switch (arg) {
+
+            case 'v': {
+                fdebug = true; // flag para mostrar informacoes de debug na thread de print
+            } break;
+
+            case 'd': {
+                secs = optarg; // variavel do getopt que guarda o argumento da option
+            } break;
+
+            case '?': { // getopt coloca `?` no arg caso alguma coisa deu errado
+                if (optopt == 'd') {
+                    print_usage("Opção -d precisa do tempo em segundos, mínimo 1.0 sec (-dN).");
+
+                } else if (isprint(optopt)) {
+                    print_usage("Opção não existe.");
+
+                } else {
+                    print_usage("Unknown option character.");
+                }
+            } break;
+
+            default:
+                print_usage("");
+        }
+    }
+
+    if (secs != NULL) {
+        double t = strtod(secs, NULL);
+        max_time = t >= 1 ? t : 3.0; // caso passem um negativo
+    } else {
+        max_time = 3.0; // default 3 secs
+    }
+}
 
 // inicializa os structs necessarios, screens, e cria as threads do toscop
 // faz o loop principal, o join e limpa todos os recursos utilizados
@@ -78,5 +131,5 @@ void run(void) {
     th_free(th); // limpa infos globais
     tp_free(tp); // limpa lista de procs
     wm_free(wm); // mata as window
-    pthread_exit(NULL);
+    free(wm); // limpa o struct wm
 }

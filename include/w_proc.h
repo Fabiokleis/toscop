@@ -27,6 +27,11 @@ typedef struct w_proc {
 
     uint64_t text_pages;   // total de paginas do text
     uint64_t text_size;    // total em kB do text
+
+    uint64_t r_threads;         // running threads de um proc
+    uint64_t s_threads;         // sleeping threads de um proc 
+    uint64_t z_threads;         // zoombie threads de um proc
+    uint64_t i_threads;         // idle threads de um proc
 } w_proc;
 
 extern w_proc* create_w_proc(uint64_t pid);

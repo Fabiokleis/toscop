@@ -159,7 +159,7 @@ void th_print(term_header* th, toscop_wm* wm) {
 
     wprintw(
         wm->th_win.win,
-        "\n  Toscop - %02d:%02d:%02d up %ld days, %02ld hours, %02ld minutes, ",
+        "\n  Toscop - %02d:%02d:%02d up %ld days, %ld hours, %ld minutes, ",
         th->ti->tm_hour, th->ti->tm_min, th->ti->tm_sec,
         th->d_uptime,
         th->h_uptime,

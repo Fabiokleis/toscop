@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
@@ -29,7 +30,7 @@ static void init_procs(term_procs* tp) {
     struct dirent* pid_f;
 
     if (proc_d == NULL) {
-        fprintf(stderr, "ERROR: could not read /proc witp opendir: %s\n", strerror(errno));
+        fprintf(stderr, "ERROR: could not read /proc with opendir: %s\n", strerror(errno));
         exit(1);
     }
 
@@ -42,7 +43,12 @@ static void init_procs(term_procs* tp) {
         if (!isdigit(*pid_f->d_name))
             continue;
 
-        aux = add(tp->proc_list, create_w_proc(strtol(pid_f->d_name, NULL, 10)));
+        uint64_t pid = strtoul(pid_f->d_name, NULL, 10);
+        if (pid == 0) {
+            fprintf(stderr, "ERROR: could not strtoul %s: %s", pid_f->d_name, strerror(errno));
+            continue;
+        }
+        aux = add(tp->proc_list, create_w_proc(pid));
         if (aux != tp->proc_list) { // pula caso nao tenha conseguido criar um w_proc
             tp->proc_list = aux;
             i++;
@@ -68,5 +74,5 @@ void tp_free(term_procs *tp) {
 // printa a lista de procs
 void tp_print(term_procs* tp, toscop_wm* wm, uint64_t starts_at){
     FORMAT(wprintw, wm->tp_win.win, A_BOLD,"\n     PID USER       PR  NI S COMMAND\n");
-    print_proclist(tp->proc_list_tail, starts_at, (uint64_t)MAX_ROWS + starts_at, wm);
+    print_proclist(tp->proc_list_tail, starts_at, (uint64_t)max_rows + starts_at, wm);
 }

@@ -2,11 +2,9 @@
 #define __TOSCOP_WIN_HEADER__
 #include <ncurses.h>
 #include <curses.h>
-#define MAX_ROWS 20
-#define MAX_WIDTH (COLS / 2 - 13)
 #define MARGIN 1
-#define TH_HEIGHT (2 * MARGIN + 6)
-#define TP_HEIGHT (2 * MARGIN + MAX_ROWS)
+
+extern int max_rows;
 
 // macro para printar qualquer coisa com um atributo
 #define FORMAT(FUNC, WIN, ATTR, ...) do { \
@@ -42,9 +40,9 @@ typedef struct toscop_wm {
     WIN_TABS c_win;         // window atual que esta com foco
 } toscop_wm;
 
-
 extern toscop_wm* create_toscop_wm(void);
 extern void tab_win(toscop_wm* wm);
+extern void resize_win(toscop_wm* wm);
 extern void draw_wmborders(toscop_wm* wm);
 extern void refresh_wm(toscop_wm* wm);
 extern void clear_wm(toscop_wm* wm);

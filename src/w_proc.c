@@ -1,22 +1,28 @@
 #include <curses.h>
 #include <ncurses.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <pwd.h>
 #include <errno.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dirent.h>
+#include <ctype.h>
 #include "../include/w_proc.h"
 #include "../include/term_header.h"
 
+
 static void init_mem(w_proc* proc);
 static bool stat_proc(w_proc* proc);
+static bool stat_proc_task(w_proc* proc);
 
 w_proc* create_w_proc(uint64_t pid) { 
     w_proc* proc = malloc(sizeof(w_proc));
 
-    proc->path = malloc(sizeof(char) * 18); // /proc/ + 12
-    snprintf(proc->path, 18, PROC_PATH"%ld", pid);  // copia o path para dentro do buffer
+    uint64_t pid_len = 7 + sizeof(uint64_t); // strlen(PROC_PATH) + pid + \0
+    proc->path = malloc(sizeof(char) * pid_len);
+    snprintf(proc->path, pid_len, PROC_PATH"%lu", pid);  // copia o path para dentro do buffer
                                                     
     // faz o parse do proc
     // caso nao consiga ler retorna false
@@ -74,7 +80,7 @@ static void init_mem(w_proc* proc) {
  */
 static bool stat_proc(w_proc* proc) {
     
-    int p_len = strlen(proc->path) + 10;
+    int p_len = strlen(proc->path) + 6; // proc->path + strlen(/stat) + \0
     char* stat_path = malloc(sizeof(char) * p_len);
     snprintf(stat_path, p_len, "%s/stat", proc->path);
     FILE* stat_file = fopen(stat_path, "r");
@@ -117,6 +123,84 @@ static bool stat_proc(w_proc* proc) {
     }
     proc->uid = sb.st_uid;
 
+    if (!stat_proc_task(proc)) {
+        fprintf(stderr, "ERROR: coult not initiliaze stats of each thread: PID: %s\n", proc->ptokens[0].value);
+    }
+    return true;
+}
+
+// le o /proc/[pid]/task/[tid] e calcula o numero de cada estado das tasks
+// retorna false caso nao consiga ler o diretorio
+static bool stat_proc_task(w_proc* proc) {
+    
+    proc->r_threads = 0;
+    proc->s_threads = 0;
+    proc->z_threads = 0;
+    proc->i_threads = 0;
+    
+
+    int p_len = strlen(proc->path) + 6; // proc->path + strlen(/task) + \0
+    char* task_path = malloc(sizeof(char) * p_len);
+    snprintf(task_path, p_len, "%s/task", proc->path);
+
+    DIR* proc_task_dir = opendir(task_path);
+    struct dirent* task_id_f;
+
+
+    // le to /proc/[pid]/task/[tid] e pega o estado de cada task 
+    // caso nao consiga ler passa para a proxima task
+    while ((task_id_f = readdir(proc_task_dir))) {
+        if (!isdigit(*task_id_f->d_name))
+            continue;
+
+        uint64_t tid = strtoul(task_id_f->d_name, NULL, 10);
+        if (tid == 0) {
+            continue;
+        }
+
+        uint64_t t_len = strlen(task_path) + sizeof(uint64_t) + 8; // task_path + tid + /status + \0
+        char* tid_path = malloc(sizeof(char) * t_len);
+        snprintf(tid_path, t_len, "%s/%lu/status", task_path, tid);
+        FILE* task_file = fopen(tid_path, "r");
+
+
+        // caso nao consiga ler essa task vai para proxima se tiver
+        if (task_file == NULL) {
+            fprintf(stderr, "%lu ERROR: could not read %s with fopen: %s\n", tid, tid_path, strerror(errno));
+            free(tid_path); // limpa o que fez o snprintf path
+            continue;
+        }
+
+        token state = find_token("State:", task_file);
+
+        switch (state.value[0]) {
+            case 'S':
+                proc->s_threads++;
+                break;
+            case 'Z':
+                proc->z_threads++;
+                break;
+            case 'I':
+                proc->i_threads++;
+                break;
+            case 'R':
+                proc->r_threads++;
+                break;
+            default:
+                break;
+        }
+
+        free(tid_path);
+        fclose(task_file);
+    }
+    free(task_path);
+
+    if (proc_task_dir == NULL) {
+        fprintf(stderr, "ERROR: could not read /proc/%s/task with opendir: %s\n", proc->ptokens[0].value, strerror(errno));
+        return false;
+    }
+
+    closedir(proc_task_dir);
     return true;
 }
 
@@ -151,7 +235,16 @@ void print_wproc_win(w_proc* wproc, t_win proc_win) {
     
     FORMAT(wprintw, proc_win.win, COLOR_PAIR(2) | A_BOLD, "\n  PID %s \n", wproc->ptokens[0].value);
     wprintw(proc_win.win, "  threads: ");
-    FORMAT(wprintw, proc_win.win, A_BOLD, "%s\n", wproc->ptokens[19].value);
+    FORMAT(wprintw, proc_win.win, A_BOLD, "%s", wproc->ptokens[19].value);
+    wprintw(proc_win.win, " total, ");
+    FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->r_threads);
+    wprintw(proc_win.win, " R, ");
+    FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->s_threads);
+    wprintw(proc_win.win, " S, ");
+    FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->z_threads);
+    wprintw(proc_win.win, " Z, ");
+    FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->i_threads);
+    wprintw(proc_win.win, " I\n");
     wprintw(proc_win.win, "  vsize: ");
     FORMAT(wprintw, proc_win.win, A_BOLD, "%lu", wproc->v_mem);
     wprintw(proc_win.win, " MB, pages: ");

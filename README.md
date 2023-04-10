@@ -31,3 +31,4 @@ trabalho para disciplina de sistemas operacionais
 - https://tldp.org/HOWTO/pdf/NCURSES-Programming-HOWTO.pdf             # livro de ncurses
 - https://man7.org/linux/man-pages/man2/getpagesize.2.html             # como ler um tamanho portavel de pagina (syscall sysconf(_SC_PAGESIZE))
 - https://man7.org/linux/man-pages/man0/stdint.h.0p.html               # tipos long, long long, unsigned long... de uma maneira mais concisa
+- https://www.gnu.org/software/libc/manual/html_node/Getopt.html       # como fazer o parse do argv 

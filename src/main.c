@@ -1,7 +1,8 @@
+#include <stdio.h>
 #include "../include/toscop.h"
 
-int main() {
+int main(int argc, char** argv) {
+    cli(argc, argv);
     run();
-
-    return 0;
+    pthread_exit(NULL);
 }

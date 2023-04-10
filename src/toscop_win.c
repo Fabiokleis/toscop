@@ -4,33 +4,45 @@
 #include "../include/toscop.h"
 #include "../include/toscop_win.h"
 
+int max_rows = 0;
+static int th_height = 0;
+static int max_width = 0;
+static int tp_height = 0;
+
 static void init(void);
+static void calc_sizes(void);
+static void init_wins(toscop_wm* wm);
 static void init_wmcolors(toscop_wm* wm);
 static inline t_win create_t_win(int h, int w, int x, int y);
 
-// cria do gerenciador de window do toscop 
+// cria o gerenciador de window do toscop 
 toscop_wm* create_toscop_wm() {
-    init();
+    init(); // inicializa o stdscr
     toscop_wm* wm = malloc(sizeof(toscop_wm));
+    init_wins(wm); // iniciliza as window do wm
+    return wm; 
+}
+
+static void init_wins(toscop_wm* wm) {
+    calc_sizes();
 
     // window das informacoes globais do toscop (term_header)
-    t_win th_win = create_t_win(TH_HEIGHT, MAX_WIDTH, MARGIN, 0);
+    t_win th_win = create_t_win(th_height, max_width, MARGIN, 0);
    
     // window da lista de processos (term_procs)
-    t_win tp_win = create_t_win(TP_HEIGHT, MAX_WIDTH, MARGIN, th_win.height); 
+    t_win tp_win = create_t_win(tp_height, max_width, MARGIN, th_win.height); 
 
     // window do processo (w_proc)
-    t_win w_proc = create_t_win(LINES / 4, COLS / 4, th_win.width + MARGIN, 0);  
+    t_win w_proc = create_t_win(LINES / 5, COLS / 4, th_win.width + MARGIN, 0);  
 
     // window de cada sessao do toscop
     wm->th_win = th_win;
     wm->tp_win = tp_win;
     wm->proc_win = w_proc;
-
     wm->c_win = TH_WIN; // seta por padrao como a win da lista de procs com foco
 
     init_wmcolors(wm);
-    return wm; 
+    draw_wmborders(wm);
 }
 
 static void init_wmcolors(toscop_wm* wm) {
@@ -57,6 +69,14 @@ static void init_wmcolors(toscop_wm* wm) {
 
 }
 
+static void calc_sizes(void) {
+    // variaveis dos tamanhos
+    th_height = (2 * MARGIN + 6);
+    max_rows = LINES - th_height - (2 * MARGIN);
+    max_width = COLS / 2;
+    tp_height = 2 * MARGIN + max_rows;
+}
+
 static void init(void) {
     // inicializa a tela do ncurses
     initscr();
@@ -81,6 +101,16 @@ static inline t_win create_t_win(int h, int w, int x, int y) {
 // alterna entre as window
 void tab_win(toscop_wm* wm) {
     wm->c_win = (wm->c_win + 1) % (PROC_WIN + 1); // proc_win é a ultima window
+}
+
+// recria as window do wm com novos valores de tamanho
+void resize_win(toscop_wm *wm) {
+    clear_wm(wm);
+    wm_free(wm);
+    init(); // iniciliza stdscr
+    init_wins(wm); // inicializa win do wm
+    draw_wmborders(wm);
+    refresh_wm(wm);
 }
 
 // desenha as bordas das telas principais

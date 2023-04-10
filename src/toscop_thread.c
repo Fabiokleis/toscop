@@ -1,6 +1,7 @@
 #include "../include/toscop.h"
 #include "../include/toscop_thread.h"
 
+// variaveis globais das threads
 int k_p = 0;
 double refresh_t = 0;
 uint64_t starts_at = 0;
@@ -22,11 +23,11 @@ void* refresh_th(void* arg) {
         refresh_t = (ct.tv_sec - st.tv_sec) + ((ct.tv_nsec - st.tv_nsec) / N_TO_S); // nanosec por sec
 
 
-        if (refresh_t == MAX_TIME - 1)
+        if (refresh_t == max_time - 1)
             last_stat = trt->th->cpu_stat;
 
-        // caso tenha passado MAX_TIME sec da refresh 
-        if (refresh_t >= MAX_TIME) {
+        // caso tenha passado max_time sec da refresh 
+        if (refresh_t >= max_time) {
             pthread_mutex_lock(&toscop_mutex);
 
             tp_free(trt->tp); // limpa lista de procs anterior
@@ -79,6 +80,11 @@ void* print_th(void* arg) {
 
             } break;
 
+            case KEY_RESIZE: {
+                MUTEX_FUNC(&toscop_mutex, resize_win, tpt->wm);
+
+            } break;
+
             case KEY_DOWN: {
                 MUTEX_FUNC(&toscop_mutex, inc_starts_at, &starts_at);
             } break;
@@ -97,12 +103,17 @@ void* print_th(void* arg) {
             clear_wm(tpt->wm);                      // limpa todas as win
             th_print(tpt->th, tpt->wm);             // printa o term_header
             tp_print(tpt->tp, tpt->wm, starts_at);  // printa o term_procs
-            mvprintw(LINES - 10, 1, "\n  c_window: %d\n  total_procs: %lu\n  starts_at: %lu\n  refresh_t: %lf\n", tpt->wm->c_win, total_procs, starts_at, refresh_t);
             draw_wmborders(tpt->wm);                // desenha borda
             pr_t = clock();      // reseta clock
             refresh_wm(tpt->wm); // escrever de fato na tela
-            refresh();
-
+          
+            // mostra informacoes de debug (configurado via flag -v)
+            if (fdebug) {
+                mvwprintw(stdscr,
+                        LINES - 2, 0, "\n  debug: %d,  c_window: %d,  total_procs: %lu,  starts_at: %lu,  refresh_t: %lf\n",
+                        fdebug, tpt->wm->c_win, total_procs, starts_at, refresh_t);
+                refresh();
+            }
             pthread_mutex_unlock(&toscop_mutex);
 
         } 
