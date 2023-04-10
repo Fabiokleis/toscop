@@ -1,6 +1,8 @@
 # toscop
-uma versão tosca do comando top
-trabalho para disciplina de sistemas operacionais
+uma versão tosca do comando top,
+trabalho para disciplina de sistemas operacionais.
+
+![toscop](https://user-images.githubusercontent.com/66813406/230812871-21a0d153-48e5-4dff-ae3f-23257412e9cb.gif)
 
 # refs
 - https://wiki.inf.ufpr.br/maziero/lib/exe/fetch.php?media=socm:socm-livro.pdf 
