@@ -69,7 +69,7 @@ Para rodar com um refresh time específico (default 3):
 - https://man7.org/linux/man-pages/man1/top.1.html                     # para entender como é calculado os valores de uso do cpu
 - https://en.wikipedia.org/wiki/Load_%28computing%29                   # para entender como calcular o load average, ler o /usr/include/linux/sysinfo.h
 - https://man7.org/linux/man-pages/man3/getline.3.html                 # funcao para ler apenas uma linha, troquei o fgets
-- https://man7.org/linux/man-pages/man3/strstr.3.html                  # funcao para copiar bytes de um ponteiro para outro
+- https://man7.org/linux/man-pages/man3/memcpy.3.html                  # funcao para copiar bytes de um ponteiro para outro
 - https://man7.org/linux/man-pages/man3/strstr.3.html                  # funcao para verificar se um char* é substr de outro char*
 - https://man7.org/linux/man-pages/man1/free.1.html                    # onde encontrar os campos de memoria e como calcular os campos necessarios
 - https://tldp.org/HOWTO/pdf/NCURSES-Programming-HOWTO.pdf             # livro de ncurses
