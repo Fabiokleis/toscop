@@ -1,10 +1,52 @@
-# toscop
+# Toscop
 uma versão tosca do comando top,
 trabalho para disciplina de sistemas operacionais.
 
 ![toscop](https://user-images.githubusercontent.com/66813406/230812871-21a0d153-48e5-4dff-ae3f-23257412e9cb.gif)
 
-# refs
+## Build e Run
+
+Arquivo Makefile deste projeto:
+```Makefile
+CC = gcc
+COMPILER_FLAGS = -g -Wall -Wextra -Wpedantic
+SOURCES = ./src/*.c
+INCLUDES = ./include/
+LINKER_FLAGS = -lncurses -lpthread 
+NAME = toscop
+
+$(NAME):
+        mkdir -p build/
+        $(CC) $(SOURCES) $(COMPILER_FLAGS) $(LINKER_FLAGS) -I $(INCLUDES) -o ./build/$(NAME)
+
+run: $(NAME) 
+        @./build/$(NAME)
+
+clean:
+        rm -f ./build/$(NAME)
+        rmdir ./build
+```
+
+Para compilar:
+```bash
+make
+```
+Para compilar e rodar:
+```bash
+make run
+```
+
+## Opções 
+Para rodar com informações de debug:
+```bash
+./build/toscop -v
+```
+Para rodar com um refresh time específico (default 3):
+```bash
+./build/toscop -d5
+```
+
+## Referências
 - https://wiki.inf.ufpr.br/maziero/lib/exe/fetch.php?media=socm:socm-livro.pdf 
 - https://man7.org/linux/man-pages/man2/syscalls.2.html                # lista com todas as syscalls
 - https://man7.org/linux/man-pages/man2/sysinfo.2.html                 # struct para pegar informacoes gerais do sistema (memoria, swap, load avg...)
