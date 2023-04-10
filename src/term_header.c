@@ -25,20 +25,34 @@ term_header* create_term_header(void) {
 
     init_time_settings(th); // cria todos campos de tempo/data
     init_mem_settings(th); // adiciona as informacoes de memoria global
-    init_cpu_stats(th, (cpu_stats){0}); // adiciona as informacoes de cpu 
+    th->cpu_stat = get_real_cpu_stats(); // 
+    calc_cpu_stats(th, (cpu_stats){0}); // adiciona as informacoes de cpu 
     init_loadavg(th); // calcula load average
 
 
     return th;
 }
 
-// faz o parse do /proc/stat e guarda numa estrutura,
-// man proc para ver os campos, e calcula os valores de uso do cpu 
-/* 
- * cpu  209917 419 128259 18553662 18180 5 8314 0 0 0
- *
- */
-void init_cpu_stats(term_header *th, cpu_stats c_stats) {
+// calcula os valores de uso do cpu, faz o delta do /proc de agora e um anterior
+void calc_cpu_stats(term_header *th, cpu_stats c_stats) {
+  
+    // calcula delta mas nao armazena em th->cpu_stat
+    uint64_t sys = th->cpu_stat.t_system - c_stats.t_system;
+    uint64_t user = th->cpu_stat.t_user - c_stats.t_user;
+    uint64_t idle = th->cpu_stat.t_idle - c_stats.t_idle;
+    uint64_t total = th->cpu_stat.total - c_stats.total;
+
+    // % cpu 
+    th->cpu_stat.cpu_idle = (double) idle / total * 100.0;
+    th->cpu_stat.cpu_usage = ((double) total - idle) / total * 100.0;
+    th->cpu_stat.cpu_sys = (double) sys / total * 100.0;
+    th->cpu_stat.cpu_us = (double) user / total * 100.0;
+}
+
+// retorna o struct cpu_stats com valores do /proc/stat de agora.
+// man proc para ver os campos 
+// cpu  209917 419 128259 18553662 18180 5 8314 0 0 0
+cpu_stats get_real_cpu_stats(void) {
 
     FILE* stat_file = fopen(PROC_PATH"/stat", "r");
     if (stat_file == NULL) {
@@ -46,38 +60,33 @@ void init_cpu_stats(term_header *th, cpu_stats c_stats) {
         exit(1);
     }
 
-    proc_parse(th->ktokens, 11, stat_file);
+    token ktokens[11];
+
+    proc_parse(ktokens, 11, stat_file);
 
     // man top - 2b. TASK and CPU States
 
     // secs cpu
-    int64_t user = strtol(th->ktokens[1].value, NULL, 10) + 
-        strtol(th->ktokens[2].value, NULL, 10);
+    int64_t user = strtol(ktokens[1].value, NULL, 10) + 
+        strtol(ktokens[2].value, NULL, 10);
 
-    int64_t system = strtol(th->ktokens[3].value, NULL, 10) +
-        strtol(th->ktokens[6].value, NULL, 10) +
-        strtol(th->ktokens[7].value, NULL, 10);
+    int64_t system = strtol(ktokens[3].value, NULL, 10) +
+        strtol(ktokens[6].value, NULL, 10) +
+        strtol(ktokens[7].value, NULL, 10);
 
     // idle
-    double idle = strtod(th->ktokens[4].value, NULL);
+    double idle = strtod(ktokens[4].value, NULL);
     double t = (double) (user + system + idle); 
 
-    th->cpu_stat.t_user = user - c_stats.t_user;
-    th->cpu_stat.t_system = system - c_stats.t_system;
-    th->cpu_stat.t_idle = idle - c_stats.t_idle;
-    th->cpu_stat.total = t - c_stats.total;   // total secs
-
-
-    // % cpu 
-    th->cpu_stat.cpu_idle = (double) th->cpu_stat.t_idle / th->cpu_stat.total * 100.0;
-    th->cpu_stat.cpu_usage = ((double) th->cpu_stat.total - th->cpu_stat.t_idle) / th->cpu_stat.total * 100.0;
-    th->cpu_stat.cpu_sys = (double) th->cpu_stat.t_system / th->cpu_stat.total * 100.0;
-    th->cpu_stat.cpu_us = (double) th->cpu_stat.t_user / th->cpu_stat.total * 100.0;
-
+    cpu_stats cpu_stat = {0};
+    cpu_stat.t_user = user;
+    cpu_stat.t_system = system;
+    cpu_stat.t_idle = idle;
+    cpu_stat.total = t;
 
     fclose(stat_file);
+    return cpu_stat;
 }
-
 
 // seta todos os campos de memoria provindos do sysinfo
 // e do /proc/meminfo

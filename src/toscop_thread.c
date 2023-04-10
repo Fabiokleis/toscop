@@ -1,6 +1,6 @@
 #include "../include/toscop.h"
 #include "../include/toscop_thread.h"
-
+#include <unistd.h>
 // variaveis globais das threads
 int k_p = 0;
 double refresh_t = 0;
@@ -12,7 +12,7 @@ void* refresh_th(void* arg) {
     toscop_thread_t* trt = arg;
     struct timespec st = {0}, ct = {0};
     clock_gettime(CLOCK_MONOTONIC, &st); // pega o tempo deis do boot para o start_time
-    cpu_stats last_stat = trt->th->cpu_stat; // guarda o ultimo valor de cpu usage
+    cpu_stats last_stat = {0}; 
 
     // apenas deixa dar join se for sair do programa
     while (k_p != 'q') {
@@ -22,26 +22,24 @@ void* refresh_th(void* arg) {
         // calcula o tempo atual - tempo do começo
         refresh_t = (ct.tv_sec - st.tv_sec) + ((ct.tv_nsec - st.tv_nsec) / N_TO_S); // nanosec por sec
 
-
-        if (refresh_t == max_time - 1)
-            last_stat = trt->th->cpu_stat;
-
         // caso tenha passado max_time sec da refresh 
         if (refresh_t >= max_time) {
+            st = ct; // reseta o clock, start time recebe current time
+
+            last_stat = trt->th->cpu_stat; // guarda o ultimo valor de cpu usage sem delta
+      
             pthread_mutex_lock(&toscop_mutex);
 
             tp_free(trt->tp); // limpa lista de procs anterior
             trt->tp = create_term_procs(); // cria nova lista
 
-            // calcula % cpu
+          
             th_free(trt->th); // limpa informacoes globais anterior
-            trt->th = create_term_header(); // cria as novas informacoes
-            init_cpu_stats(trt->th, last_stat); // calcula delta
-
-            st = ct; // reseta o clock
-            refresh_t = 0;
-
+            trt->th = create_term_header(); // cria o novo term header
+            calc_cpu_stats(trt->th, last_stat); // calcula delta de % cpu
+           
             pthread_mutex_unlock(&toscop_mutex);
+        
         }
     } 
     pthread_exit(NULL);

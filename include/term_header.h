@@ -64,7 +64,8 @@ extern uint64_t i_procs;     // idle
 extern uint64_t total_procs; // numero total de procs
 
 extern term_header* create_term_header(void);
-extern void init_cpu_stats(term_header* th, cpu_stats c_stats);
+extern void calc_cpu_stats(term_header* th, cpu_stats c_stats);
+extern cpu_stats get_real_cpu_stats(void);
 extern void th_print(term_header* th, toscop_wm* wm);
 extern void th_free(term_header* th);
 
