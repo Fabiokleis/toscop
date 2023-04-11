@@ -1,6 +1,9 @@
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <assert.h>
+#include <errno.h>
 #include "../include/proc_parser.h"
 
 
@@ -28,17 +31,28 @@ static char* trim_l(char *value) {
  * separado por espaco e guardando no token
  * espera que tokens e stat_path sejam validos
  */
-void proc_parse(token* tokens, uint64_t ttokens, FILE* stat_file) {
+void proc_parse(token** tokens, uint64_t ttokens, FILE* stat_file) {
 
     char *line = NULL;
     size_t lsz = 0;
-    getline(&line, &lsz, stat_file); // apenas uma linha
+    // apenas uma linha
+    if (getline(&line, &lsz, stat_file) == -1) {
+        fprintf(stderr, "ERROR: could not getline: %s\n", strerror(errno));
+        return; // caso nao consiga ler retorna o tokens vazio sem malloc;
+    } 
     int keys = 0; 
     int until_s = 0; 
     int i = 0;
     int pt_c = 0;
 
-    while (line[i] != '\0') {
+    *tokens = (token *) malloc(ttokens * sizeof(token));
+    if (tokens == NULL) {
+        fprintf(stderr, "ERROR: could not malloc %zu: %s\n", ttokens * sizeof(token), strerror(errno));
+        free(line);
+        return; // caso nao consiga dar malloc retorna o tokens vazio;
+    }
+
+    while (line[i] != '\0' && (uint64_t) keys < ttokens) {
 
         // controla os parenteses
 
@@ -50,37 +64,43 @@ void proc_parse(token* tokens, uint64_t ttokens, FILE* stat_file) {
 
 
         if (isspace(line[i]) && !isspace(line[i - 1]) && pt_c == 0) {
-            tokens[keys].value = malloc(sizeof(char) * (until_s + 1));
-            tokens[keys].value[until_s] = '\0';
-            for (int k = 0; until_s > 0; until_s--) {
-                tokens[keys].value[k] = line[(i - until_s)];
+            int k = 0;
+            char aux[until_s];
+            (*tokens)[keys].value = (char* ) malloc(sizeof(char) * (until_s + 1));
+            aux[until_s] = '\0';
+            for (k = 0; until_s > 0; until_s--) {
+                aux[k] = line[(i - until_s)];
                 k++;
             }
-
+            strncpy((*tokens)[keys].value, aux, k+1);
             keys++;
-        } 
+        }
 
         until_s++; // numero de chars ate um espaco
         i++;
     }
 
     // da trim em cada value de cada token 
-    for (uint64_t i = 0; i < ttokens; i++) {
-        tokens[i].value = trim_l(trim_r(tokens[i].value));
+    for (uint64_t j = 0; j < ttokens; j++) {
+        trim_l(trim_r((*tokens)[j].value));
     }
-
     free(line);
 } 
 
 // procura por um char* em um arquivo, caso encontre retorna
 // caso nao encontre retorna o token vazio
-// e nao poem a leitura no inicio do arquivo
-token find_token(char* name, FILE* f) {
+token find_token(char* name, FILE* qf) {
+    assert(name != NULL);
+    assert(qf != NULL);
+
     char *line = NULL;
     size_t lsz = 0;
     ssize_t nread;
 
-    while ((nread = getline(&line, &lsz, f)) != -1) {
+    // para procurar no começo do arquivo sempre
+    fseek(qf, 0, SEEK_SET);
+
+    while ((nread = getline(&line, &lsz, qf)) != -1) {
         if (strstr(line, name) == line) {
 
             char* s_val = line + strlen(name); // soma o endereço inicial com o tamanho do name, passando para fim do char*
@@ -101,7 +121,6 @@ token find_token(char* name, FILE* f) {
             return (token){ .value = value };
         }
     }
-
     free(line);
     return (token){ .value = "" };
 }

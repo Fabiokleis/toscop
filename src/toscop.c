@@ -11,6 +11,9 @@
 pthread_mutex_t toscop_mutex;
 bool fdebug = false;
 double max_time = 0; // definida via argv
+term_header* th;
+term_procs* tp; 
+toscop_wm* wm;  
 
 static void print_usage(const char* msg) {
     fprintf(stderr, "%s\nUsage: toscop [-vdN] [-v verboso, -dN tempo de atualização (suporta double)]\n", msg);
@@ -65,7 +68,7 @@ void cli(int argc, char **argv) {
 // faz o loop principal, o join e limpa todos os recursos utilizados
 void run(void) {
     // inicializa ncurses e as window do toscop
-    toscop_wm* wm = create_toscop_wm(); 
+    wm = create_toscop_wm(); 
 
     // inicializa o unico mutex das threads
     pthread_mutex_init(&toscop_mutex, NULL);
@@ -81,17 +84,14 @@ void run(void) {
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
     // th tem as informacoes globais
-    term_header* th = create_term_header();
+    th = create_term_header();
 
     // tp tem a lista de processos
-    term_procs* tp = create_term_procs();
+    tp = create_term_procs();
 
     // thread para printar os processos
     toscop_thread_t print_thread;
     print_thread.thread_id = 0;
-    print_thread.th = th;
-    print_thread.tp = tp;
-    print_thread.wm = wm;
 
     int st = pthread_create(&print_thread.thread_id, &attr, print_th, &print_thread); // cria thread com loop principal
 
@@ -102,9 +102,6 @@ void run(void) {
     // thread para atualizar o th
     toscop_thread_t refresh_thread;
     refresh_thread.thread_id = 1;
-    refresh_thread.th = th; // aponta para o mesmo th
-    refresh_thread.tp = tp; // aponta para o mesmo tp
-    refresh_thread.wm = NULL;
 
     // inicializa a thread que faz o refresh da lista de processos
     st = pthread_create(&refresh_thread.thread_id, &attr, refresh_th, &refresh_thread);

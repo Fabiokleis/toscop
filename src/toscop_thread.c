@@ -1,15 +1,18 @@
+#define _GNU_SOURCE
 #include "../include/toscop.h"
 #include "../include/toscop_thread.h"
 #include <unistd.h>
-// variaveis globais das threads
+#include <assert.h>
+#include <stdlib.h>
+// variaveis globais das threads que sao inicializadas aqui
 int k_p = 0;
 double refresh_t = 0;
 uint64_t starts_at = 0;
 
 // thread para atualizar a lista de processos
 void* refresh_th(void* arg) {
+    (void) arg; // parametro nao utilizado
     
-    toscop_thread_t* trt = arg;
     struct timespec st = {0}, ct = {0};
     clock_gettime(CLOCK_MONOTONIC, &st); // pega o tempo deis do boot para o start_time
     cpu_stats last_stat = {0}; 
@@ -26,17 +29,16 @@ void* refresh_th(void* arg) {
         if (refresh_t >= max_time) {
             st = ct; // reseta o clock, start time recebe current time
 
-            last_stat = trt->th->cpu_stat; // guarda o ultimo valor de cpu usage sem delta
+            last_stat = th->cpu_stat; // guarda o ultimo valor de cpu usage sem delta
       
             pthread_mutex_lock(&toscop_mutex);
 
-            tp_free(trt->tp); // limpa lista de procs anterior
-            trt->tp = create_term_procs(); // cria nova lista
-
+            tp_free(tp); // limpa lista de procs anterior
+            tp = create_term_procs(); // cria nova lista
           
-            th_free(trt->th); // limpa informacoes globais anterior
-            trt->th = create_term_header(); // cria o novo term header
-            calc_cpu_stats(trt->th, last_stat); // calcula delta de % cpu
+            th_free(th); // limpa informacoes globais anterior
+            th = create_term_header(); // cria o novo term header
+            calc_cpu_stats(th, last_stat); // calcula delta de % cpu
            
             pthread_mutex_unlock(&toscop_mutex);
         
@@ -59,9 +61,8 @@ static void sub_starts_at(uint64_t* st_at) {
 // thread com loop principal
 // thread para printar a lista de processos
 void* print_th(void* arg) {
+    (void) arg; // parametro nao utilizado
 
-    toscop_thread_t* tpt = arg;
-  
     clock_t pr_t = clock();
     double p_t = 0;
 
@@ -74,13 +75,11 @@ void* print_th(void* arg) {
         switch (k_p) {
 
             case 9: { // 9 é o codigo da tecla tab
-                tab_win(tpt->wm);
-
+                MUTEX_FUNC(&toscop_mutex, tab_win, wm);
             } break;
 
             case KEY_RESIZE: {
-                MUTEX_FUNC(&toscop_mutex, resize_win, tpt->wm);
-
+                MUTEX_FUNC(&toscop_mutex, resize_win, wm);
             } break;
 
             case KEY_DOWN: {
@@ -98,18 +97,18 @@ void* print_th(void* arg) {
         if (p_t >= 0.2) { // a cada 0.2 segundos é atualizado o print
             pthread_mutex_lock(&toscop_mutex);
 
-            clear_wm(tpt->wm);                      // limpa todas as win
-            th_print(tpt->th, tpt->wm);             // printa o term_header
-            tp_print(tpt->tp, tpt->wm, starts_at);  // printa o term_procs
-            draw_wmborders(tpt->wm);                // desenha borda
-            pr_t = clock();      // reseta clock
-            refresh_wm(tpt->wm); // escrever de fato na tela
+            clear_wm(wm);                      // limpa todas as win
+            th_print(th, wm);                  // printa o term_header
+            tp_print(tp, wm, starts_at);       // printa o term_procs
+            draw_wmborders(wm);                // desenha borda
+            pr_t = clock();                    // reseta clock
+            refresh_wm(wm);                    // escrever de fato na tela
           
             // mostra informacoes de debug (configurado via flag -v)
             if (fdebug) {
                 mvwprintw(stdscr,
                         LINES - 2, 0, "\n  debug: %d,  c_window: %d,  total_procs: %lu,  starts_at: %lu,  refresh_t: %lf\n",
-                        fdebug, tpt->wm->c_win, total_procs, starts_at, refresh_t);
+                        fdebug, wm->c_win, total_procs, starts_at, refresh_t);
                 refresh();
             }
             pthread_mutex_unlock(&toscop_mutex);

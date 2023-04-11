@@ -44,7 +44,6 @@ typedef struct mem_stats {
 typedef struct term_header {
     struct sysinfo si;        // campo sysinfo contem inumeras informaçoes do sistema
     struct tm* ti;            // campo timeinfo contem informacoes de tempo
-    token ktokens[11];        // primeira linha do /proc/stat, contendo informacoes do cpu
     cpu_stats cpu_stat;       // valores de tempo de uso do cpu, em secs e em %
     mem_stats mem_stat;       // informacoes de memoria obtidos via sysinfo, e feito os calculos de %
     double lavg[3];           // loadavg do sistema

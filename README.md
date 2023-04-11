@@ -9,7 +9,7 @@ trabalho para disciplina de sistemas operacionais.
 Arquivo Makefile deste projeto:
 ```Makefile
 CC = gcc
-COMPILER_FLAGS = -g -Wall -Wextra -Wpedantic
+COMPILER_FLAGS = -g -Wall -Wextra -Wpedantic -std=c11
 SOURCES = ./src/*.c
 INCLUDES = ./include/
 LINKER_FLAGS = -lncurses -lpthread 

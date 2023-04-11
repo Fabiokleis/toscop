@@ -4,6 +4,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <assert.h>
 #include "../include/term_header.h"
 
 // funcoes que devem ser utilizadas apenas no term_header 
@@ -60,9 +61,10 @@ cpu_stats get_real_cpu_stats(void) {
         exit(1);
     }
 
-    token ktokens[11];
-
-    proc_parse(ktokens, 11, stat_file);
+    
+    token *ktokens = NULL;
+    proc_parse(&ktokens, 11, stat_file);
+    assert(ktokens != NULL);
 
     // man top - 2b. TASK and CPU States
 
@@ -84,6 +86,10 @@ cpu_stats get_real_cpu_stats(void) {
     cpu_stat.t_idle = idle;
     cpu_stat.total = t;
 
+    for (int j = 0; j < 11; j++)
+        free(ktokens[j].value);
+        
+    free(ktokens);
     fclose(stat_file);
     return cpu_stat;
 }
@@ -98,10 +104,20 @@ static void init_mem_settings(term_header* th) {
         exit(1);
     }
 
-    int64_t t_m = strtol(find_token("MemTotal:", mem_info).value, NULL, 10);
-    int64_t b_m = strtol(find_token("Buffers:", mem_info).value, NULL, 10);
-    int64_t c_m = strtol(find_token("Cached:", mem_info).value, NULL, 10);
-    int64_t vmsz = strtol(find_token("VmallocTotal:", mem_info).value, NULL, 10);
+    /* strtoul retorna 0 quando da erro, e seta o errno 
+     * esta sendo ignorado errno. 
+    */
+    token mem_t = find_token("MemTotal:", mem_info);
+    uint64_t t_m = strtoul(mem_t.value, NULL, 10);
+
+    token buff_m = find_token("Buffers:", mem_info);
+    uint64_t b_m = strtoul(buff_m.value, NULL, 10);
+
+    token cached_m = find_token("Cached:", mem_info);
+    uint64_t c_m = strtoul(cached_m.value, NULL, 10);
+
+    token vmalloc = find_token("VmallocTotal:", mem_info);
+    uint64_t vmsz = strtoul(vmalloc.value, NULL, 10);
 
     // mem settings
     // sysinfo guarda em bytes
@@ -124,6 +140,18 @@ static void init_mem_settings(term_header* th) {
     mem_stat.fp_mem = ((double) mem_stat.f_mem / mem_stat.t_mem) * 100.0;
 
     th->mem_stat = mem_stat;
+
+    if (NULL != mem_t.value)
+        free(mem_t.value);
+
+    if (NULL != buff_m.value)
+        free(buff_m.value);
+
+    if (NULL != cached_m.value)
+        free(cached_m.value);
+    
+    if (NULL != vmalloc.value)
+        free(vmalloc.value);
 
     fclose(mem_info);
 }

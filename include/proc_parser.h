@@ -12,7 +12,7 @@ typedef struct token {
 } token;
 
 
-extern void proc_parse(token *tokens, uint64_t ttokens, FILE* stat_file);
-extern token find_token(char* name, FILE* f);
+extern void proc_parse(token** tokens, uint64_t ttokens, FILE* stat_file);
+extern token find_token(char* name, FILE* qf);
 
 #endif
