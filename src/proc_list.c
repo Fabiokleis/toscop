@@ -65,9 +65,6 @@ void print_proclist(ProcList* tl, int64_t starts_at, uint32_t max_rows, toscop_w
 
     // printa cada proc
     for ( ; i < max_rows && aux != NULL; aux = aux->prev) {
-
-        if (aux->proc == NULL)
-            continue;
         // para destacar o processo atual
         if (i == starts_at) {
             wattron(wm->tp_win.win, COLOR_PAIR(2) | A_BOLD);

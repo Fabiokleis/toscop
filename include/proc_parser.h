@@ -2,6 +2,7 @@
 #define __PROC_PARSER_HEADER__
 #include <stdio.h>
 #include <stdint.h>
+#define MAX_STR_LEN 128
 /*
  * estrutura para guardar uma palavra 
  * a ideia é pegar cada token separado 

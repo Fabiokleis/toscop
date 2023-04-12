@@ -55,7 +55,8 @@ w_proc* create_w_proc(uint64_t pid) {
 
 // calcula o numero de pagina de cada campo de memoria e seu tamanho em MB
 static bool init_mem(w_proc* proc) {
-
+    assert(proc->ptokens != NULL);
+    
     // sysconf(_SC_PAGESIZE) deve retornar o tamanho de uma pagina (padrao 4096 bytes)
 
     proc->pv_mem = strtoul(proc->ptokens[22].value, NULL, 10) / sysconf(_SC_PAGESIZE); // vmsize em paginas do proc
@@ -64,7 +65,7 @@ static bool init_mem(w_proc* proc) {
     proc->r_mem = proc->pr_mem * sysconf(_SC_PAGESIZE) / MB;  // rss total em MB do proc
     
     // man proc (/proc/[pid]/status)
-    int p_len = strlen(proc->path) + 8; // proc->path + /status
+    int p_len = strlen(proc->path) + 8; // proc->path + strlen(/status) + \0
     char* status_path = malloc(sizeof(char) * p_len);
     snprintf(status_path, p_len, "%s/status", proc->path);
     FILE *proc_status = fopen(status_path, "r");
@@ -78,7 +79,6 @@ static bool init_mem(w_proc* proc) {
     /* stack, heap e text 
      * stroul quando falha seta o errno e coloca o valor 0 no resultado 
      * errno está sendo ignorado, pois muitos processo nao tem esses campos no /proc/[pid]status
-     * 
      */
     token heap = find_token("VmData:", proc_status);
     proc->heap_size = strtoul(heap.value, NULL, 10); // size em kB
@@ -92,13 +92,14 @@ static bool init_mem(w_proc* proc) {
     proc->text_size = strtoul(text.value, NULL, 10); // size me kB
     proc->text_pages = proc->text_size * 1024 / sysconf(_SC_PAGESIZE);
 
-    if (NULL != heap.value)
+    // quando strtoul nao falha precisamos limpar a memoria do token
+    if (proc->heap_size)
         free(heap.value);
 
-    if (NULL != stack.value)
+    if (proc->stack_size)
         free(stack.value);
 
-    if (NULL != text.value)
+    if (proc->text_size)
         free(text.value);
 
     free(status_path);
@@ -119,11 +120,13 @@ static bool stat_proc(w_proc* proc) {
 
     if (stat_file == NULL) {
         fprintf(stderr, "ERROR: could not read %s with fopen: %s\n", stat_path, strerror(errno));
+        free(stat_path);
         return false;
     }
 
     // pega cada campo do /proc/[pid]/stat separados por espaco e coloca em uma estrutura 
     // cada processo tem 52 campos no /proc/[pid]/stat (man proc para ver)
+    proc->ptokens = NULL;
     proc_parse(&proc->ptokens, 52, stat_file);
     assert(proc->ptokens != NULL);
     

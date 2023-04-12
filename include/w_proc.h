@@ -8,25 +8,25 @@
  * conteudo de um processo
  */
 typedef struct w_proc {
-    token* ptokens;          // numero de campos do /proc/[pid]/stat
+    token* ptokens;             // numero de campos do /proc/[pid]/stat
     char* path;                 // caminho absoluto -> /proc/[pid]
     char* owner_name;           // nome do usuario dono da proc
     int uid;                    // user id
     int gid;                    // grupo dono da proc
 
-    uint64_t r_mem;        // (rss) ram total de memoria do processo 
-    uint64_t v_mem;        // virtual size total do processo
-    uint64_t pr_mem;       // total de paginas de rss do processo
-    uint64_t pv_mem;       // total de paginas de vm do processo
+    uint64_t r_mem;             // (rss) ram total de memoria do processo 
+    uint64_t v_mem;             // virtual size total do processo
+    uint64_t pr_mem;            // total de paginas de rss do processo
+    uint64_t pv_mem;            // total de paginas de vm do processo
 
-    uint64_t stack_pages;  // total de paginas da stack
-    uint64_t stack_size;   // total em kB da stack
+    uint64_t stack_pages;       // total de paginas da stack
+    uint64_t stack_size;        // total em kB da stack
 
-    uint64_t heap_pages;   // total de paginas da heap
-    uint64_t heap_size;    // total em kB da heap
+    uint64_t heap_pages;        // total de paginas da heap
+    uint64_t heap_size;         // total em kB da heap
 
-    uint64_t text_pages;   // total de paginas do text
-    uint64_t text_size;    // total em kB do text
+    uint64_t text_pages;        // total de paginas do text
+    uint64_t text_size;         // total em kB do text
 
     uint64_t r_threads;         // running threads de um proc
     uint64_t s_threads;         // sleeping threads de um proc 

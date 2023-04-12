@@ -121,7 +121,7 @@ void run(void) {
     if (sj < 0) {
         fprintf(stderr, "ERROR: could not join refresh_thread: %s\n", strerror(errno));
         exit(1);
-    } 
+    }
     // free em tudo que foi usado
     pthread_mutex_destroy(&toscop_mutex);
     pthread_attr_destroy(&attr);

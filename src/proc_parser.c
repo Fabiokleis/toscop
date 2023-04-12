@@ -30,6 +30,7 @@ static char* trim_l(char *value) {
  * faz o parse de uma linha, pegando cada valor 
  * separado por espaco e guardando no token
  * espera que tokens e stat_path sejam validos
+ * faz o parse para o token de tipo TYPE_STR 
  */
 void proc_parse(token** tokens, uint64_t ttokens, FILE* stat_file) {
 
@@ -52,7 +53,7 @@ void proc_parse(token** tokens, uint64_t ttokens, FILE* stat_file) {
         return; // caso nao consiga dar malloc retorna o tokens vazio;
     }
 
-    while (line[i] != '\0' && (uint64_t) keys < ttokens) {
+    while (line[i] != '\0' && (uint64_t) keys < ttokens && until_s < MAX_STR_LEN) {
 
         // controla os parenteses
 
@@ -64,25 +65,21 @@ void proc_parse(token** tokens, uint64_t ttokens, FILE* stat_file) {
 
 
         if (isspace(line[i]) && !isspace(line[i - 1]) && pt_c == 0) {
-            int k = 0;
             char aux[until_s];
-            (*tokens)[keys].value = (char* ) malloc(sizeof(char) * (until_s + 1));
+            (*tokens)[keys].value = malloc(sizeof(char) * (until_s + 1));
             aux[until_s] = '\0';
-            for (k = 0; until_s > 0; until_s--) {
+            for (int k = 0; until_s > 0; until_s--) {
                 aux[k] = line[(i - until_s)];
                 k++;
             }
-            strncpy((*tokens)[keys].value, aux, k+1);
+
+            char *clean_str = trim_l(trim_r(aux));
+            strncpy((*tokens)[keys].value, clean_str, strlen(clean_str) + 1);
             keys++;
         }
 
         until_s++; // numero de chars ate um espaco
         i++;
-    }
-
-    // da trim em cada value de cada token 
-    for (uint64_t j = 0; j < ttokens; j++) {
-        trim_l(trim_r((*tokens)[j].value));
     }
     free(line);
 } 

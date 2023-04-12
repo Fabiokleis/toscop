@@ -16,10 +16,10 @@ typedef struct cpu_stats {
     uint64_t t_idle;              // total de secs do id (tempo ocioso)
     uint64_t total;               // soma de todos secs
 
-    double cpu_usage;         // total % cpu 
-    double cpu_us;            // total % us
-    double cpu_sys;           // total % sy 
-    double cpu_idle;          // total % id
+    double cpu_usage;             // total % cpu 
+    double cpu_us;                // total % us
+    double cpu_sys;               // total % sy 
+    double cpu_idle;              // total % id
 } cpu_stats;
 
 // estrutura para guardar os valores de memoria
@@ -34,19 +34,19 @@ typedef struct mem_stats {
     uint64_t c_mem;            // cached memory
     uint64_t u_mem;            // used memory
 
-    double fp_mem;           // % de mem free
-    double up_mem;           // % de mem usada
+    double fp_mem;             // % de mem free
+    double up_mem;             // % de mem usada
 } mem_stats;
 
 /*
  *  cabeçalho do toscop com informações globais
  */
 typedef struct term_header {
-    struct sysinfo si;        // campo sysinfo contem inumeras informaçoes do sistema
-    struct tm* ti;            // campo timeinfo contem informacoes de tempo
-    cpu_stats cpu_stat;       // valores de tempo de uso do cpu, em secs e em %
-    mem_stats mem_stat;       // informacoes de memoria obtidos via sysinfo, e feito os calculos de %
-    double lavg[3];           // loadavg do sistema
+    struct sysinfo si;            // campo sysinfo contem inumeras informaçoes do sistema
+    struct tm* ti;                // campo timeinfo contem informacoes de tempo
+    cpu_stats cpu_stat;           // valores de tempo de uso do cpu, em secs e em %
+    mem_stats mem_stat;           // informacoes de memoria obtidos via sysinfo, e feito os calculos de %
+    double lavg[3];               // loadavg do sistema
     uint64_t d_uptime;            // tempo em sec dos dias
     uint64_t h_uptime;            // tempo em sec das horas
     uint64_t m_uptime;            // tempo em sec dos minutos

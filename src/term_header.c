@@ -14,12 +14,7 @@ static void init_loadavg(term_header* th);
 
 // cria e inicializa os campos do th
 term_header* create_term_header(void) {
-    // zera todos os contadores caso um novo term_header seja criado
-    r_procs = 0;
-    s_procs = 0;
-    z_procs = 0;
-    i_procs = 0;
-    
+
     term_header *th = malloc(sizeof(term_header)); 
     sysinfo(&th->si); // inicializa sysinfo que contem varias informacoes do sistema
     th->t_threads = th->si.procs;
@@ -69,12 +64,12 @@ cpu_stats get_real_cpu_stats(void) {
     // man top - 2b. TASK and CPU States
 
     // secs cpu
-    int64_t user = strtol(ktokens[1].value, NULL, 10) + 
-        strtol(ktokens[2].value, NULL, 10);
+    uint64_t user = strtoul(ktokens[1].value, NULL, 10) + 
+        strtoul(ktokens[2].value, NULL, 10);
 
-    int64_t system = strtol(ktokens[3].value, NULL, 10) +
-        strtol(ktokens[6].value, NULL, 10) +
-        strtol(ktokens[7].value, NULL, 10);
+    uint64_t system = strtol(ktokens[3].value, NULL, 10) +
+        strtoul(ktokens[6].value, NULL, 10) +
+        strtoul(ktokens[7].value, NULL, 10);
 
     // idle
     double idle = strtod(ktokens[4].value, NULL);
@@ -141,16 +136,19 @@ static void init_mem_settings(term_header* th) {
 
     th->mem_stat = mem_stat;
 
-    if (NULL != mem_t.value)
-        free(mem_t.value);
 
-    if (NULL != buff_m.value)
+    // strtoul retorna 0 caso nao fez o parse
+    // caso nao retorne 0, temos que liberar a memoria do token
+    if (t_m) 
+        free(mem_t.value); 
+
+    if (b_m)
         free(buff_m.value);
 
-    if (NULL != cached_m.value)
+    if (c_m)
         free(cached_m.value);
     
-    if (NULL != vmalloc.value)
+    if (vmsz)
         free(vmalloc.value);
 
     fclose(mem_info);

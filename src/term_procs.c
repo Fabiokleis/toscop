@@ -18,6 +18,12 @@ uint64_t total_procs = 0;
 static void init_procs(term_procs* tp);
 
 term_procs* create_term_procs(void) {
+    // zera todos os contadores caso um novo term_procs seja criado
+    r_procs = 0;
+    s_procs = 0;
+    z_procs = 0;
+    i_procs = 0;
+
     term_procs* tp = malloc(sizeof(term_procs));
     init_procs(tp); // le o /proc/[pid] e monta a lista de procs
     return tp;

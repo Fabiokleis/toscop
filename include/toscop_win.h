@@ -7,11 +7,8 @@
 extern int max_rows;
 
 // macro para printar qualquer coisa com um atributo
-#define FORMAT(FUNC, WIN, ATTR, ...) do { \
-    wattron(WIN, ATTR); \
-    FUNC(WIN, __VA_ARGS__); \
-    wattroff(WIN, ATTR); \
-} while(0)
+#define FORMAT(FUNC, WIN, ATTR, ...) \
+    do { wattron(WIN, ATTR); FUNC(WIN, __VA_ARGS__); wattroff(WIN, ATTR); } while(0)
 
 // wrapper da window com suas informacoes basicas
 typedef struct t_win {

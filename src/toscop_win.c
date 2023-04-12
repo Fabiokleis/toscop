@@ -19,6 +19,7 @@ static inline t_win create_t_win(int h, int w, int x, int y);
 toscop_wm* create_toscop_wm() {
     init(); // inicializa o stdscr
     toscop_wm* wm = malloc(sizeof(toscop_wm));
+    init_wmcolors(wm);
     init_wins(wm); // iniciliza as window do wm
     return wm; 
 }
@@ -40,9 +41,6 @@ static void init_wins(toscop_wm* wm) {
     wm->tp_win = tp_win;
     wm->proc_win = w_proc;
     wm->c_win = TH_WIN; // seta por padrao como a win da lista de procs com foco
-
-    init_wmcolors(wm);
-    draw_wmborders(wm);
 }
 
 static void init_wmcolors(toscop_wm* wm) {
@@ -109,7 +107,6 @@ void resize_win(toscop_wm *wm) {
     wm_free(wm);
     init(); // iniciliza stdscr
     init_wins(wm); // inicializa win do wm
-    draw_wmborders(wm);
     refresh_wm(wm);
 }
 
@@ -154,7 +151,6 @@ void clear_wm(toscop_wm *wm) {
 
 // deleta todas as window criadas
 void wm_free(toscop_wm* wm) {
-    refresh_wm(wm);
     delwin(wm->th_win.win);
     delwin(wm->tp_win.win);
     delwin(wm->proc_win.win);
