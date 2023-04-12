@@ -30,7 +30,6 @@ static char* trim_l(char *value) {
  * faz o parse de uma linha, pegando cada valor 
  * separado por espaco e guardando no token
  * espera que tokens e stat_path sejam validos
- * faz o parse para o token de tipo TYPE_STR 
  */
 void proc_parse(token** tokens, uint64_t ttokens, FILE* stat_file) {
 
@@ -39,6 +38,7 @@ void proc_parse(token** tokens, uint64_t ttokens, FILE* stat_file) {
     // apenas uma linha
     if (getline(&line, &lsz, stat_file) == -1) {
         fprintf(stderr, "ERROR: could not getline: %s\n", strerror(errno));
+        free(line);
         return; // caso nao consiga ler retorna o tokens vazio sem malloc;
     } 
     int keys = 0; 
@@ -66,14 +66,14 @@ void proc_parse(token** tokens, uint64_t ttokens, FILE* stat_file) {
 
         if (isspace(line[i]) && !isspace(line[i - 1]) && pt_c == 0) {
             char aux[until_s];
-            (*tokens)[keys].value = malloc(sizeof(char) * (until_s + 1));
             aux[until_s] = '\0';
             for (int k = 0; until_s > 0; until_s--) {
                 aux[k] = line[(i - until_s)];
                 k++;
             }
 
-            char *clean_str = trim_l(trim_r(aux));
+            char *clean_str = trim_r(trim_l(aux));
+            (*tokens)[keys].value = malloc(sizeof(char) * (strlen(clean_str) + 1));
             strncpy((*tokens)[keys].value, clean_str, strlen(clean_str) + 1);
             keys++;
         }
@@ -103,7 +103,6 @@ token find_token(char* name, FILE* qf) {
             char* s_val = line + strlen(name); // soma o endereço inicial com o tamanho do name, passando para fim do char*
             s_val = trim_l(s_val); // remove os espaços a esquerda
 
-
             // vai até a ocorrencia primeiro espaço antes de terminar o char*
             char* e_val = s_val;
             while (!isspace(*e_val)) {
@@ -112,9 +111,12 @@ token find_token(char* name, FILE* qf) {
 
             int64_t v_len = e_val - s_val;
             char *value = malloc(v_len + 1);
+
             memcpy(value, s_val, v_len); // copia o valor para o value
             value[v_len] = '\0';
+
             free(line);
+
             return (token){ .value = value };
         }
     }
