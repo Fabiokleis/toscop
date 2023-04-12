@@ -105,19 +105,18 @@ token find_token(char* name, FILE* qf) {
 
             // vai até a ocorrencia primeiro espaço antes de terminar o char*
             char* e_val = s_val;
-            while (!isspace(*e_val)) {
+            while (*e_val != '\0' && !isspace(*e_val))
                 e_val++;
-            }
 
             int64_t v_len = e_val - s_val;
             char *value = malloc(v_len + 1);
 
-            memcpy(value, s_val, v_len); // copia o valor para o value
+            strncpy(value, s_val, v_len); // copia o valor para o value
             value[v_len] = '\0';
 
             free(line);
 
-            return (token){ .value = value };
+            return (token){ .value = trim_r(value) };
         }
     }
     free(line);
