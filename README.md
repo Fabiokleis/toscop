@@ -9,22 +9,25 @@ trabalho para disciplina de sistemas operacionais.
 Arquivo Makefile deste projeto:
 ```Makefile
 CC = gcc
-COMPILER_FLAGS = -g -Wall -Wextra -Wpedantic -std=c11
+COMPILER_FLAGS = -ggdb -Wall -Wextra -Wpedantic -std=c11
 SOURCES = ./src/*.c
-INCLUDES = ./include/
+INCLUDES = -I ./include/
 LINKER_FLAGS = -lncurses -lpthread 
 NAME = toscop
 
 $(NAME):
-        mkdir -p build/
-        $(CC) $(SOURCES) $(COMPILER_FLAGS) $(LINKER_FLAGS) -I $(INCLUDES) -o ./build/$(NAME)
+	mkdir -p build/
+	$(CC) $(SOURCES) $(COMPILER_FLAGS) $(LINKER_FLAGS) $(INCLUDES) -o ./build/$(NAME)
 
 run: $(NAME) 
-        @./build/$(NAME)
+	@./build/$(NAME)
+
+install: $(NAME)
+	install -m 0755 ./build/$(NAME) /usr/local/sbin/$(NAME)
 
 clean:
-        rm -f ./build/$(NAME)
-        rmdir ./build
+	rm -f ./build/$(NAME)
+	rmdir ./build
 ```
 
 Para compilar:
@@ -44,6 +47,12 @@ Para rodar com informações de debug:
 Para rodar com um refresh time específico (default 3):
 ```bash
 ./build/toscop -d5
+```
+
+## Install
+Para instalar o toscop no `/usr/local/sbin/toscop`, a permissão fica 0755
+```console
+sudo make install
 ```
 
 ## Referências

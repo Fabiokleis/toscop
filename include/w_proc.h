@@ -37,6 +37,7 @@ typedef struct w_proc {
 extern w_proc* create_w_proc(uint64_t pid);
 extern void print_wproc_line(w_proc* wproc, t_win list_win);
 extern void print_wproc_win(w_proc* wproc, t_win proc_win);
+extern void free_ptokens(w_proc *proc);
 extern void proc_free(w_proc* proc);
 
 #endif

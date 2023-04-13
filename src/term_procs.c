@@ -55,6 +55,12 @@ static void init_procs(term_procs* tp) {
 
         uint64_t pid = strtoul(pid_f->d_name, NULL, 10);
 
+        // caso o falhe o strtoul, voltamos o errno para 0 e continuamos o loop
+        if (pid == 0) {
+            errno = 0;
+            continue;
+        }
+
         // pula caso nao tenha conseguido criar um w_proc
         aux = add(tp->proc_list, create_w_proc(pid));
         if (aux != tp->proc_list) {

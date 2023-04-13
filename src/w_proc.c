@@ -28,22 +28,35 @@ w_proc* create_w_proc(uint64_t pid) {
     // faz o parse do proc
     // caso nao consiga ler retorna false
     if (!stat_proc(proc)) {
+        free(proc->path);
+        free(proc);
         return NULL; // caso ocorra um erro de leitura retorna NULL
     }
     // inicializa todos os campos de memoria (rss, vmsize, heap, stack, text)
+    // caso ocorra algum erro de leitura retorna NULL
     if (!init_mem(proc)) {
-        return NULL;     // caso ocorra algum erro de leitura retorna NULL
+        free_ptokens(proc);
+        free(proc->path);
+        free(proc);
+        return NULL;     
     } 
 
     // iniciliza todas as tasks de uma proc
+    // caso de algum erro de leitura retorna NULL
     if (!stat_proc_task(proc)) {
-        return NULL; // caso de algum erro de leitura retorna NULL
+        free_ptokens(proc);
+        free(proc->path);
+        free(proc);
+        return NULL; 
     }
 
     // pega o nome do usuario e outras informacos com base no uid do stat_proc
     struct passwd* r_pwd = getpwuid(proc->uid);
     if (r_pwd == NULL) {
         fprintf(stderr, "ERROR: could not getpwuid of %d %s\n", proc->uid, strerror(errno));
+        free_ptokens(proc);
+        free(proc->path);
+        free(proc);
         return NULL;
     }
     uint64_t pwd_len = strlen(r_pwd->pw_name) + 1;
@@ -113,7 +126,7 @@ static bool init_mem(w_proc* proc) {
  */
 static bool stat_proc(w_proc* proc) {
     
-    int p_len = strlen(proc->path) + 6; // proc->path + strlen(/stat) + \0
+    int p_len = strlen(proc->path) + 7; // proc->path + strlen(/stat/) + \0
     char* stat_path = malloc(sizeof(char) * p_len);
     snprintf(stat_path, p_len, "%s/stat", proc->path);
     FILE* stat_file = fopen(stat_path, "r");
@@ -155,6 +168,7 @@ static bool stat_proc(w_proc* proc) {
 
     if (stat(proc->path, &sb) == -1) {
         fprintf(stderr, "ERROR: could not stat %s: %s\n", proc->path, strerror(errno));
+        free_ptokens(proc);
         return false;
     }
     proc->uid = sb.st_uid;
@@ -236,6 +250,7 @@ static bool stat_proc_task(w_proc* proc) {
     // caso algum erro deu no readdir, o errno é modificado
     if (proc_task_dir == NULL && errno != 0) {
         fprintf(stderr, "ERROR: could not read /proc/%s/task with readdir: %s\n", proc->ptokens[0].value, strerror(errno));
+
         return false;
     }
 
@@ -317,10 +332,19 @@ void print_wproc_win(w_proc* wproc, t_win proc_win) {
     wprintw(proc_win.win, " total\n");
 }
 
-void proc_free(w_proc* proc) {
-    for (int i = 0; i < 52; i++)
+void free_ptokens(w_proc *proc) {
+    assert(proc != NULL);
+    assert(proc->ptokens != NULL);
+    for (int i = 0; i < 52 && proc->ptokens != NULL; i++)
         free(proc->ptokens[i].value);
+
     free(proc->ptokens);
+}
+
+void proc_free(w_proc* proc) {
+    assert(proc != NULL);
+    free_ptokens(proc);
     free(proc->path);
     free(proc->owner_name);
+    free(proc);
 }

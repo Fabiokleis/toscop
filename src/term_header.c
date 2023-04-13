@@ -157,8 +157,6 @@ static void init_mem_settings(term_header* th) {
 // seta todos os campos de hora/data 
 static void init_time_settings(term_header* th) {
     
-    th->ti = malloc(sizeof(struct tm));
-
     // time settings
     time_t r_time; 
     time(&r_time); 

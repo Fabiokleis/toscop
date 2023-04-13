@@ -130,3 +130,4 @@ void run(void) {
     wm_free(wm); // mata as window
     free(wm); // limpa o struct wm
 }
+
