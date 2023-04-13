@@ -208,6 +208,11 @@ static bool stat_proc_task(w_proc* proc) {
             continue;
 
         uint64_t tid = strtoul(task_id_f->d_name, NULL, 10);
+        // caso falhe o strtoul
+        if (tid == 0) {
+            errno = 0;
+            continue; 
+        }
 
         uint64_t t_len = strlen(task_path) + sizeof(uint64_t) + 8; // task_path + tid + /status + \0
         char* tid_path = malloc(sizeof(char) * t_len);
@@ -289,7 +294,7 @@ void print_wproc_win(w_proc* wproc, t_win proc_win) {
      */
 
 
-    FORMAT(wprintw, proc_win.win, COLOR_PAIR(2) | A_BOLD, "\n  PID %s \n", wproc->ptokens[0].value);
+    FORMAT(wprintw, proc_win.win, COLOR_PAIR(2) | A_BOLD, "\n  PID %s %s \n", wproc->ptokens[0].value, wproc->ptokens[1].value);
     wprintw(proc_win.win, "  threads: ");
     FORMAT(wprintw, proc_win.win, A_BOLD, "%s", wproc->ptokens[19].value);
     wprintw(proc_win.win, " total, ");
