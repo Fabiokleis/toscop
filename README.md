@@ -2,7 +2,7 @@
 uma versão tosca do comando top,
 trabalho para disciplina de sistemas operacionais.
 
-![toscop](https://user-images.githubusercontent.com/66813406/230812871-21a0d153-48e5-4dff-ae3f-23257412e9cb.gif)
+![toscop4](https://user-images.githubusercontent.com/66813406/231803102-dae021aa-228b-4f96-8255-e3e38ff0d919.gif)
 
 ## Build e Run
 
