@@ -5,7 +5,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <assert.h>
-#include "../include/term_header.h"
+#include "term_header.h"
 
 // funcoes que devem ser utilizadas apenas no term_header 
 static void init_time_settings(term_header* th);

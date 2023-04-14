@@ -3,10 +3,10 @@
 #include <errno.h>
 #include <getopt.h>
 #include <ctype.h>
-#include "../include/toscop.h"
-#include "../include/term_header.h"
-#include "../include/toscop_thread.h"
-#include "../include/toscop_win.h"
+#include "toscop.h"
+#include "term_header.h"
+#include "toscop_thread.h"
+#include "toscop_win.h"
 
 pthread_mutex_t toscop_mutex;
 bool fdebug = false;
@@ -50,7 +50,6 @@ void cli(int argc, char **argv) {
                     print_usage("Unknown option character.");
                 }
             } break;
-
             default:
                 print_usage("");
         }

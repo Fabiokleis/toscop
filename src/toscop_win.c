@@ -1,8 +1,8 @@
 #include <curses.h>
 #include <ncurses.h>
 #include <stdlib.h>
-#include "../include/toscop.h"
-#include "../include/toscop_win.h"
+#include "toscop.h"
+#include "toscop_win.h"
 
 int max_rows = 0;
 static int th_height = 0;

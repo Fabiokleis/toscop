@@ -4,7 +4,7 @@
 #include <string.h>
 #include <assert.h>
 #include <errno.h>
-#include "../include/proc_parser.h"
+#include "proc_parser.h"
 
 
 // remove espaços a direita de value

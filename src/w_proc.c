@@ -10,8 +10,8 @@
 #include <dirent.h>
 #include <ctype.h>
 #include <assert.h>
-#include "../include/w_proc.h"
-#include "../include/term_header.h"
+#include "w_proc.h"
+#include "term_header.h"
 
 
 static bool init_mem(w_proc* proc);

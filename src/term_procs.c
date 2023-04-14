@@ -5,7 +5,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include <assert.h>
-#include "../include/term_procs.h"
+#include "term_procs.h"
 
 // define as variaveis de estado dos procs para o term_header
 uint64_t r_procs = 0;

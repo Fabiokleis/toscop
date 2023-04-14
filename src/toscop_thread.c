@@ -1,9 +1,9 @@
 #define _GNU_SOURCE
-#include "../include/toscop.h"
-#include "../include/toscop_thread.h"
 #include <unistd.h>
 #include <assert.h>
 #include <stdlib.h>
+#include "toscop.h"
+#include "toscop_thread.h"
 // variaveis globais das threads que sao inicializadas aqui
 int k_p = 0;
 double refresh_t = 0;

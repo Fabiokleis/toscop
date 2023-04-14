@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "../include/toscop.h"
+#include "toscop.h"
 
 int main(int argc, char** argv) {
     cli(argc, argv);

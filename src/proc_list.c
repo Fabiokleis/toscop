@@ -1,7 +1,7 @@
 #include <curses.h>
 #include <assert.h>
 #include <stdlib.h>
-#include "../include/proc_list.h"
+#include "proc_list.h"
 
 ProcList* create_proclist(void) {
     return NULL;
