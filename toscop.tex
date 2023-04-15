@@ -1,0 +1,200 @@
+\documentclass{article}
+\nofiles
+\usepackage{minted}
+\usepackage{dirtree}
+\usemintedstyle{colorful}
+
+\title{Toscop}
+\author{Fabio Kleis \textlangle fabiohrkc@gmail.com\textrangle}
+\date{\today}
+\begin{document}
+\maketitle
+
+Toscop é um dashboard de processos para linux escrito em linguagem C. 
+O projeto utiliza bibliotecas padrão da linguagem C, como \textit{pthread}
+para programação em multithreading e \textit{ncurses} para programacão
+de uma \textit{tui}. Segue uma organização simples separando um diretório
+para arquivos .h e outro diretório para arquivos .c, utiliza o sistema make
+para o gerenciamento de compilação. A estrutura do projeto:
+
+\dirtree{%
+.1 toscop/.
+.2 Makefile\DTcomment{GNU Makefile}.
+.2 LICENSE\DTcomment{MIT LINCESE}.
+.2 README.md.
+.2 include/\DTcomment{C include directory}.
+.3 proc\_list.h.
+.3 proc\_parser.h.
+.3 term\_header.h.
+.3 term\_procs.h.
+.3 toscop.h.
+.3 toscop\_thread.h.
+.3 toscop\_win.h.
+.3 w\_proc.h.
+.2 src/\DTcomment{C source directory}.
+.3 main.c.
+.3 proc\_list.c.
+.3 proc\_parser.c.
+.3 term\_header.c.
+.3 term\_procs.c.
+.3 toscop.c.
+.3 toscop\_thread.c.
+.3 toscop\_win.c.
+.3 w\_proc.c.
+}
+\hfill \break
+Antes de prosseguirmos com as explicações do código alguns exclarecimentos 
+sobre a organizaçãdo do documento devem estar ditas. Serão suprimidos comentários
+demasiadamente longos assim como espaços desnecessários e algumas explicações gerais
+sobre a linguagem C que podem estar presentes no código fonte do projeto mas não
+estaram presente neste documento.
+
+
+O começo do programa está no arquivo \textit{toscop/src/main.c}, nele são chamadas as
+funções para tratar os argumentos via linha de comando, inicializar o programa
+e por fim saír.
+
+\begin{minted}{c}
+#include "toscop.h"
+
+int main(int argc, char** argv) {
+    cli(argc, argv);
+    run();
+    pthread_exit(NULL);
+}
+\end{minted}
+
+\section{threads}
+O programa utiliza duas threads para separar suas funcionalidades, sendo 
+mostrar as informações na tela e atualizar suas informações, as threads
+são gerenciadas via variáveis globais no arquivo \textit{toscop/include/toscop.h}:
+
+\begin{minted}{c}
+#define MUTEX_FUNC(MUTEX, FUNC, ...) do \
+    { pthread_mutex_lock(MUTEX); FUNC(__VA_ARGS__); pthread_mutex_unlock(MUTEX); } \
+while(0)
+
+extern pthread_mutex_t toscop_mutex;   // mutex global
+extern double max_time;                // tempo maximo para cada refresh
+extern bool fdebug;                    // flag de debug
+extern term_header* th;                // gerenciador das informacoes globais
+extern term_procs* tp;                 // gerenciador da lista de procs
+extern toscop_wm* wm;                  // gerenciador de window para cada info
+extern void run(void);
+extern void cli(int argc, char** argv); 
+\end{minted}
+
+O programa divide as duas principais funcionalidades nas threads
+print\_th e refresh\_th, a estrutura das threads e suas funcões estão 
+declaradas no arquivo \textit{toscop/include/toscop\_thread.h}:
+
+\begin{minted}{c}
+typedef struct toscop_thread_t {
+    pthread_t thread_id;
+} toscop_thread_t;
+
+extern void* print_th(void* arg);
+extern void* refresh_th(void* arg);
+\end{minted}
+
+São definidas variávies static no começo do arquivo \textit{toscop/src/toscop\_thread.c}
+ para o controle da execução das threads e o tempo de atualização das informações globais.
+
+\begin{minted}{c}
+static int k_p = 0;
+static double refresh_t = 0;
+\end{minted}
+
+\subsection{print\_th}
+
+A thread print\_th é responsável por mostrar as informações contidas
+em cada uma das estruturas declaradas globalmente no arquivo 
+\textit{toscop/include/toscop.h}, a funcão print\_th está definida 
+no arquivo \textit{toscop/src/toscop\_thread.c}:
+
+\begin{minted}{c}
+void* print_th(void* arg) {
+    (void) arg; 
+
+    clock_t pr_t = clock();
+    double p_t = 0;
+
+    while (k_p != 'q') {
+
+        // muda o estado interno do do wm com base no k_p
+        MUTEX_FUNC(&toscop_mutex, handle_key, wm, &k_p);
+
+        p_t = (double)(clock() - pr_t) / CLOCKS_PER_SEC;
+
+        if (p_t >= 0.2) { // a cada 0.2 segundos é atualizado o print
+       
+            MUTEX_FUNC(&toscop_mutex, show_toscop, wm);
+         
+            // mostra informacoes de debug (configurado via flag -v)
+            if (fdebug)
+                MUTEX_FUNC(&toscop_mutex, show_debug_info, wm, refresh_t);
+
+            pr_t = clock();  // reseta clock
+        } 
+    }
+    pthread_exit(NULL);
+}
+\end{minted}
+
+A condição de parada é definida quando a tecla `q' é pressionada, 
+podendo assim ser feito o pthread\_join. A funcionalidade dessa thread 
+é mostrar todas as informações do programa através da função show\_topscop 
+que é envelopada na macro MUTEX\_FUNC que força essa chamada de função
+funcionar com exclusão mútua através do mutex global toscop\_mutex.
+
+\pagebreak
+
+\subsection{refresh\_th}
+
+A thread refresh\_th é responsável por atualizar as informações contidas em cada
+uma das estruturas declaradas globalmente no arquivo \textit{toscop/include/toscop.h}, 
+a funcão refresh\_th está definida no arquivo \textit{toscop/src/toscop\_thread.c}:
+
+\begin{minted}{c}
+void* refresh_th(void* arg) {
+    (void) arg; 
+    
+    struct timespec st = {0}, ct = {0};
+    clock_gettime(CLOCK_MONOTONIC, &st); // pega o tempo deis do boot para o start_time
+    cpu_stats last_stat = {0}; 
+ 
+    while (k_p != 'q') {
+
+        clock_gettime(CLOCK_MONOTONIC, &ct); 
+        // calcula o tempo atual - tempo do começo
+        refresh_t = (ct.tv_sec - st.tv_sec) + ((ct.tv_nsec - st.tv_nsec) / N_TO_S); 
+
+        // caso tenha passado max_time sec da refresh 
+        if (refresh_t >= max_time) {
+            st = ct;                  // reseta o clock, start time recebe current time
+            last_stat = th->cpu_stat; // guarda o ultimo valor de cpu usage sem delta
+      
+            pthread_mutex_lock(&toscop_mutex);
+
+            tp_free(tp);                    // limpa lista de procs anterior
+            tp = create_term_procs();       // cria nova lista
+          
+            th_free(th);                    // limpa informacoes globais anterior
+            th = create_term_header();      // cria o novo term header
+            calc_cpu_stats(th, last_stat);  // calcula delta de % cpu
+           
+            pthread_mutex_unlock(&toscop_mutex);
+        
+        }
+    } 
+    pthread_exit(NULL);
+}
+\end{minted}
+
+A condição de parada é a mesma da thread print\_th. A thread refresh\_th atualiza
+as informações das estruturas globais de forma periódica, sendo controlado os ciclos 
+pela variável global max\_time.
+
+\pagebreak
+
+\end{document}

@@ -8,8 +8,9 @@
 
 // macro para rodar alguma coisa com mutex 
 // espera o mutex passado por referencia
-#define MUTEX_FUNC(MUTEX, FUNC, ...) \
-    do { pthread_mutex_lock(MUTEX); FUNC(__VA_ARGS__); pthread_mutex_unlock(MUTEX); } while (0)
+#define MUTEX_FUNC(MUTEX, FUNC, ...) do \
+    { pthread_mutex_lock(MUTEX); FUNC(__VA_ARGS__); pthread_mutex_unlock(MUTEX); } \
+while (0)
 
 extern pthread_mutex_t toscop_mutex;   // mutex global
 extern double max_time;                // tempo maximo para cada refresh

@@ -14,9 +14,12 @@ SOURCES = ./src/*.c
 INCLUDES = -I ./include/
 LINKER_FLAGS = -lncurses -lpthread 
 NAME = toscop
+TEX = $(NAME).tex
 
-$(NAME):
-	mkdir -p build/
+.PHONY: all
+all: $(NAME) tex
+
+$(NAME): build
 	$(CC) $(SOURCES) $(COMPILER_FLAGS) $(LINKER_FLAGS) $(INCLUDES) -o ./build/$(NAME)
 
 run: $(NAME) 
@@ -25,27 +28,34 @@ run: $(NAME)
 install: $(NAME)
 	install -m 0755 ./build/$(NAME) /usr/local/sbin/$(NAME)
 
+tex:
+	pdflatex -shell-escape -interaction=batchmode $(TEX) 
+	rm $(NAME).log 
+
+build:
+	@mkdir -p build/
+
 clean:
 	rm -f ./build/$(NAME)
 	rmdir ./build
 ```
 
 Para compilar:
-```bash
-make
+```console
+make toscop
 ```
 Para compilar e rodar:
-```bash
+```console
 make run
 ```
 
 ## Opções 
 Para rodar com informações de debug:
-```bash
+```console
 ./build/toscop -v
 ```
 Para rodar com um refresh time específico (default 3):
-```bash
+```console
 ./build/toscop -d5
 ```
 
@@ -53,6 +63,13 @@ Para rodar com um refresh time específico (default 3):
 Para instalar o toscop no `/usr/local/sbin/toscop`, a permissão fica 0755
 ```console
 sudo make install
+```
+
+## toscop LaTeX
+Para gerar o documento pdf verifique se tem instalado os pacotes LaTeX utilizados
+no documento `toscop.tex` na raiz desse repositório, para então rodar no shell:
+```console
+make tex
 ```
 
 ## Referências
@@ -86,3 +103,4 @@ sudo make install
 - https://www.gnu.org/software/libc/manual/html_node/Getopt.html       # como fazer o parse do argv 
 - https://linux.die.net/man/3/strncpy                                  # copiar char* de forma segura
 - https://man7.org/linux/man-pages/man3/localtime.3p.html              # localtime, utilizado em conjunto com time
+- https://linux.die.net/man/1/pdflatex                                 # comando para gerar pdf a partir de um file tex
