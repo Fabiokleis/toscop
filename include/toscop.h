@@ -5,6 +5,7 @@
 #include "term_header.h"
 #include "term_procs.h"
 #include "toscop_win.h"
+
 // macro para rodar alguma coisa com mutex 
 // espera o mutex passado por referencia
 #define MUTEX_FUNC(MUTEX, FUNC, ...) \

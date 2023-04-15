@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include "term_header.h"
+#include "proc_parser.h"
 
 // funcoes que devem ser utilizadas apenas no term_header 
 static void init_time_settings(term_header* th);
@@ -67,13 +68,15 @@ cpu_stats get_real_cpu_stats(void) {
     uint64_t user = strtoul(ktokens[1].value, NULL, 10) + 
         strtoul(ktokens[2].value, NULL, 10);
 
-    uint64_t system = strtol(ktokens[3].value, NULL, 10) +
+    uint64_t system = strtoul(ktokens[3].value, NULL, 10) +
         strtoul(ktokens[6].value, NULL, 10) +
         strtoul(ktokens[7].value, NULL, 10);
 
     // idle
     double idle = strtod(ktokens[4].value, NULL);
     double t = (double) (user + system + idle); 
+
+    errno = 0; // caso algum strto* falhar
 
     cpu_stats cpu_stat = {0};
     cpu_stat.t_user = user;
@@ -109,10 +112,13 @@ static void init_mem_settings(term_header* th) {
     uint64_t b_m = strtoul(buff_m.value, NULL, 10);
 
     token cached_m = find_token("Cached:", mem_info);
-    uint64_t c_m = strtoul(cached_m.value, NULL, 10);
+    token s_reclain = find_token("SReclaimable:", mem_info);
+    uint64_t c_m = strtoul(cached_m.value, NULL, 10) + strtoul(s_reclain.value, NULL, 10);
 
     token vmalloc = find_token("VmallocTotal:", mem_info);
     uint64_t vmsz = strtoul(vmalloc.value, NULL, 10);
+
+    errno = 0;
 
     // mem settings
     // sysinfo guarda em bytes
@@ -129,7 +135,7 @@ static void init_mem_settings(term_header* th) {
     };
 
     // man free para ver como é feito o calculo
-    mem_stat.u_mem = mem_stat.t_mem - mem_stat.f_mem - mem_stat.b_mem - mem_stat.c_mem;
+    mem_stat.u_mem = mem_stat.t_mem - (mem_stat.f_mem + mem_stat.b_mem + mem_stat.c_mem);
 
     mem_stat.up_mem = ((double) mem_stat.u_mem / mem_stat.t_mem) * 100.0;
     mem_stat.fp_mem = ((double) mem_stat.f_mem / mem_stat.t_mem) * 100.0;

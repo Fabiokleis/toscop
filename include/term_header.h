@@ -1,8 +1,8 @@
 #ifndef __TERM_HEADER__
 #define __TERM_HEADER__
 #include <linux/sysinfo.h>
+#include <stdint.h>
 #include "toscop_win.h"
-#include "proc_parser.h"
 
 #define PROC_PATH "/proc/"
 #define LINESZ 1024

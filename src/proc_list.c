@@ -38,6 +38,7 @@ uint64_t get_tprocs(ProcList* tl) {
     assert(tl != NULL);
     ProcList* aux = NULL;
     uint64_t tp = 0;
+
     if (tl->prev == NULL) {
         aux = tl;
         while (aux != NULL) {
@@ -45,7 +46,7 @@ uint64_t get_tprocs(ProcList* tl) {
             tp++;
         }
     } else if (tl->next == NULL) {
-        aux = get_lasttl(tl);
+        aux = tl;
         while (aux != NULL) {
             aux = aux->prev;
             tp++;
@@ -56,6 +57,8 @@ uint64_t get_tprocs(ProcList* tl) {
 
 // faz o print esperando a tail da lista, pois fazemos o add na cabeça, logo a tail tem o 1 w_proc
 void print_proclist(ProcList* tl, int64_t starts_at, uint32_t max_rows, toscop_wm* wm) {
+    assert(tl != NULL);
+    assert(wm != NULL);
     int64_t i = 0;
     ProcList* aux = NULL;
 

@@ -1,8 +1,8 @@
 #ifndef __PROC_HEADER__
 #define __PROC_HEADER__
+#include <stdint.h>
 #include "proc_parser.h"
 #include "toscop_win.h"
-#include <stdint.h>
 
 /*
  * conteudo de um processo

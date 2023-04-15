@@ -1,10 +1,7 @@
 #ifndef __TOSCOP_WIN_HEADER__
 #define __TOSCOP_WIN_HEADER__
 #include <ncurses.h>
-#include <curses.h>
 #define MARGIN 1
-
-extern int max_rows;
 
 // macro para printar qualquer coisa com um atributo
 #define FORMAT(FUNC, WIN, ATTR, ...) \
@@ -17,6 +14,7 @@ typedef struct t_win {
     int height;
     int x;
     int y;
+    uint64_t starts_at;
 } t_win;
 
 // enum para alternar entre as window
@@ -38,11 +36,9 @@ typedef struct toscop_wm {
 } toscop_wm;
 
 extern toscop_wm* create_toscop_wm(void);
-extern void tab_win(toscop_wm* wm);
-extern void resize_win(toscop_wm* wm);
-extern void draw_wmborders(toscop_wm* wm);
-extern void refresh_wm(toscop_wm* wm);
-extern void clear_wm(toscop_wm* wm);
+extern void handle_key(toscop_wm* wm, int* k_p);
+extern void show_debug_info(toscop_wm* wm, double refresh_t);
+extern void show_toscop(toscop_wm* wm);
 extern void wm_free(toscop_wm* wm);
 
 #endif

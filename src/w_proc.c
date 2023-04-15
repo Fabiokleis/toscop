@@ -57,6 +57,7 @@ w_proc* create_w_proc(uint64_t pid) {
         free_ptokens(proc);
         free(proc->path);
         free(proc);
+        errno = 0;
         return NULL;
     }
     uint64_t pwd_len = strlen(r_pwd->pw_name) + 1;
@@ -86,6 +87,7 @@ static bool init_mem(w_proc* proc) {
     if (proc_status == NULL) {
         fprintf(stderr, "ERROR: could not read %s with fopen: %s\n", status_path, strerror(errno)); 
         free(status_path);
+        errno = 0;
         return false;
     }
 
@@ -134,6 +136,7 @@ static bool stat_proc(w_proc* proc) {
     if (stat_file == NULL) {
         fprintf(stderr, "ERROR: could not read %s with fopen: %s\n", stat_path, strerror(errno));
         free(stat_path);
+        errno = 0;
         return false;
     }
 
@@ -169,6 +172,7 @@ static bool stat_proc(w_proc* proc) {
     if (stat(proc->path, &sb) == -1) {
         fprintf(stderr, "ERROR: could not stat %s: %s\n", proc->path, strerror(errno));
         free_ptokens(proc);
+        errno = 0;
         return false;
     }
     proc->uid = sb.st_uid;
@@ -196,6 +200,7 @@ static bool stat_proc_task(w_proc* proc) {
     if (proc_task_dir == NULL) {
         fprintf(stderr, "ERROR: could not open %s with opendir: %s\n", task_path, strerror(errno));
         free(task_path);
+        errno = 0;
         return false;
     }
 
@@ -255,7 +260,7 @@ static bool stat_proc_task(w_proc* proc) {
     // caso algum erro deu no readdir, o errno é modificado
     if (proc_task_dir == NULL && errno != 0) {
         fprintf(stderr, "ERROR: could not read /proc/%s/task with readdir: %s\n", proc->ptokens[0].value, strerror(errno));
-
+        errno = 0;
         return false;
     }
 

@@ -17,6 +17,7 @@ uint64_t total_procs = 0;
 // funcao que deve ser utilizada apenas nesse arquivo
 static void init_procs(term_procs* tp);
 
+// cria um novo term_procs que contem a lista de procs
 term_procs* create_term_procs(void) {
     // zera todos os contadores caso um novo term_procs seja criado
     r_procs = 0;
@@ -63,7 +64,7 @@ static void init_procs(term_procs* tp) {
 
         // pula caso nao tenha conseguido criar um w_proc
         aux = add(tp->proc_list, create_w_proc(pid));
-        if (aux != tp->proc_list) {
+        if (aux != NULL) {
             i++;
             tp->proc_list = aux;
         }
@@ -94,8 +95,8 @@ void tp_free(term_procs *tp) {
 }
 
 // printa a lista de procs
-void tp_print(term_procs* tp, toscop_wm* wm, uint64_t starts_at){
+void tp_print(term_procs* tp, toscop_wm* wm, uint64_t starts_at, uint64_t max_rows){
     assert(tp->proc_list_tail != NULL);
     FORMAT(wprintw, wm->tp_win.win, A_BOLD,"\n     PID USER       PR  NI S COMMAND\n");
-    print_proclist(tp->proc_list_tail, starts_at, (uint64_t)max_rows + starts_at, wm);
+    print_proclist(tp->proc_list_tail, starts_at, max_rows + starts_at, wm);
 }

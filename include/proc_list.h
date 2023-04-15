@@ -1,8 +1,9 @@
 #ifndef __PROC_LIST_HEADER__
 #define __PROC_LIST_HEADER__
-#include "toscop_win.h"
-#include "w_proc.h"
 #include <stdint.h>
+#include "w_proc.h"
+#include "toscop_win.h"
+
 /*
  * lista duplamente encadeada para guardar a struct do proc
  */
