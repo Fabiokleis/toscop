@@ -85,3 +85,4 @@ sudo make install
 - https://man7.org/linux/man-pages/man0/stdint.h.0p.html               # tipos long, long long, unsigned long... de uma maneira mais concisa
 - https://www.gnu.org/software/libc/manual/html_node/Getopt.html       # como fazer o parse do argv 
 - https://linux.die.net/man/3/strncpy                                  # copiar char* de forma segura
+- https://man7.org/linux/man-pages/man3/localtime.3p.html              # localtime, utilizado em conjunto com time
