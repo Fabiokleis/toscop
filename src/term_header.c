@@ -213,9 +213,7 @@ void th_print(term_header* th, toscop_wm* wm) {
     // global procs
     wprintw(wm->th_win.win, "  Procs: ");
     FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", total_procs);
-    wprintw(wm->th_win.win, " total, Threads: ");
-    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", th->t_threads);
-    wprintw(wm->th_win.win, ", ");
+    wprintw(wm->th_win.win, " total, ");
     FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", r_procs);
     wprintw(wm->th_win.win, " running, ");
     FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", s_procs);
@@ -223,7 +221,9 @@ void th_print(term_header* th, toscop_wm* wm) {
     FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", z_procs);
     wprintw(wm->th_win.win, " zoombie, ");
     FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", i_procs);
-    wprintw(wm->th_win.win, " idle\n");
+    wprintw(wm->th_win.win, " idle, Threads: ");
+    FORMAT(wprintw, wm->th_win.win, A_BOLD, "%lu", th->t_threads);
+    wprintw(wm->th_win.win, " total\n");
 
     // global cpu usage
     wprintw(wm->th_win.win, "  Cpu%%: ");

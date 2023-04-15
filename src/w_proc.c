@@ -92,7 +92,7 @@ static bool init_mem(w_proc* proc) {
     }
 
     /* stack, heap e text 
-     * stroul quando falha seta o errno e coloca o valor 0 no resultado 
+     * strtoul quando falha seta o errno e coloca o valor 0 no resultado 
      * errno está sendo ignorado, pois muitos processo nao tem esses campos no /proc/[pid]status
      */
     token heap = find_token("VmData:", proc_status);
@@ -107,6 +107,7 @@ static bool init_mem(w_proc* proc) {
     proc->text_size = strtoul(text.value, NULL, 10); // size me kB
     proc->text_pages = proc->text_size * 1024 / sysconf(_SC_PAGESIZE);
 
+    errno = 0;
     // quando strtoul nao falha precisamos limpar a memoria do token
     if (proc->heap_size)
         free(heap.value);
