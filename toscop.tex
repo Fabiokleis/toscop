@@ -2,26 +2,24 @@
 \nofiles
 \usepackage{minted}
 \usepackage{dirtree}
+\usepackage{graphicx}
 \usemintedstyle{colorful}
 
 \title{Toscop}
-\author{Fabio Kleis \textlangle fabiohrkc@gmail.com\textrangle}
+\author{Fabio Kleis fabiohrkc@gmail.com}
 \date{\today}
 \begin{document}
 \maketitle
 
 Toscop é um dashboard de processos para linux escrito em linguagem C. 
-O projeto utiliza bibliotecas padrão da linguagem C, como \textit{pthread}
-para programação em multithreading e \textit{ncurses} para programacão
-de uma \textit{tui}. Segue uma organização simples separando um diretório
-para arquivos .h e outro diretório para arquivos .c, utiliza o sistema make
-para o gerenciamento de compilação. A estrutura do projeto:
+O projeto utiliza syscalls do linux e bibliotecas padrão da linguagem C
+como \textit{pthread} para programação em multithreading e \textit{ncurses}
+para programacão de uma \textit{tui}, segue uma organização simples 
+separando um diretório para arquivos .h e outro diretório para arquivos .c,
+utiliza o sistema make para o gerenciamento de compilação:  
 
 \dirtree{%
 .1 toscop/.
-.2 Makefile\DTcomment{GNU Makefile}.
-.2 LICENSE\DTcomment{MIT LINCESE}.
-.2 README.md.
 .2 include/\DTcomment{C include directory}.
 .3 proc\_list.h.
 .3 proc\_parser.h.
@@ -31,6 +29,9 @@ para o gerenciamento de compilação. A estrutura do projeto:
 .3 toscop\_thread.h.
 .3 toscop\_win.h.
 .3 w\_proc.h.
+.2 LICENSE\DTcomment{MIT LINCESE}.
+.2 Makefile\DTcomment{GNU Makefile}.
+.2 README.md.\DTcomment{README PLS}.
 .2 src/\DTcomment{C source directory}.
 .3 main.c.
 .3 proc\_list.c.
@@ -44,15 +45,15 @@ para o gerenciamento de compilação. A estrutura do projeto:
 }
 \hfill \break
 Antes de prosseguirmos com as explicações do código alguns exclarecimentos 
-sobre a organizaçãdo do documento devem estar ditas. Serão suprimidos comentários
-demasiadamente longos assim como espaços desnecessários e algumas explicações gerais
-sobre a linguagem C que podem estar presentes no código fonte do projeto mas não
-estaram presente neste documento.
+sobre a organizaçãdo do documento devem estar definidas. O objetivo é mostrar
+de forma resumida as estruturas principais do projeto e seu funcionamento
+como um todo. Então serão suprimidas muitas informações que podem estar
+presentes no código fonte do projeto mas não estaram presente neste documento.
 
-
-O começo do programa está no arquivo \textit{toscop/src/main.c}, nele são chamadas as
-funções para tratar os argumentos via linha de comando, inicializar o programa
-e por fim saír.
+O começo do programa está no arquivo \textit{toscop/src/main.c}, nele é chamada
+função cli para tratar os argumentos via linha de comando e parametrizar as variáveis
+globais, e também a função run que inicializa as estruturas globais, cria as threads e
+faz o join delas, e por fim termina o processo.
 
 \begin{minted}{c}
 #include "toscop.h"
@@ -64,7 +65,7 @@ int main(int argc, char** argv) {
 }
 \end{minted}
 
-\section{threads}
+\section{Threads do pthread}
 O programa utiliza duas threads para separar suas funcionalidades, sendo 
 mostrar as informações na tela e atualizar suas informações, as threads
 são gerenciadas via variáveis globais no arquivo \textit{toscop/include/toscop.h}:
@@ -105,7 +106,7 @@ static int k_p = 0;
 static double refresh_t = 0;
 \end{minted}
 
-\subsection{print\_th}
+\subsection{Thread print\_th}
 
 A thread print\_th é responsável por mostrar as informações contidas
 em cada uma das estruturas declaradas globalmente no arquivo 
@@ -145,11 +146,11 @@ A condição de parada é definida quando a tecla `q' é pressionada,
 podendo assim ser feito o pthread\_join. A funcionalidade dessa thread 
 é mostrar todas as informações do programa através da função show\_topscop 
 que é envelopada na macro MUTEX\_FUNC que força essa chamada de função
-funcionar com exclusão mútua através do mutex global toscop\_mutex.
+executar com exclusão mútua através do mutex global toscop\_mutex.
 
 \pagebreak
 
-\subsection{refresh\_th}
+\subsection{Thread refresh\_th}
 
 A thread refresh\_th é responsável por atualizar as informações contidas em cada
 uma das estruturas declaradas globalmente no arquivo \textit{toscop/include/toscop.h}, 
@@ -160,7 +161,7 @@ void* refresh_th(void* arg) {
     (void) arg; 
     
     struct timespec st = {0}, ct = {0};
-    clock_gettime(CLOCK_MONOTONIC, &st); // pega o tempo deis do boot para o start_time
+    clock_gettime(CLOCK_MONOTONIC, &st); // pega o tempo deis do boot 
     cpu_stats last_stat = {0}; 
  
     while (k_p != 'q') {
@@ -171,8 +172,10 @@ void* refresh_th(void* arg) {
 
         // caso tenha passado max_time sec da refresh 
         if (refresh_t >= max_time) {
-            st = ct;                  // reseta o clock, start time recebe current time
-            last_stat = th->cpu_stat; // guarda o ultimo valor de cpu usage sem delta
+            // reseta o clock, start time recebe current time
+            st = ct;                  
+            // guarda o ultimo valor de cpu usage sem delta
+            last_stat = th->cpu_stat; 
       
             pthread_mutex_lock(&toscop_mutex);
 
@@ -192,9 +195,167 @@ void* refresh_th(void* arg) {
 \end{minted}
 
 A condição de parada é a mesma da thread print\_th. A thread refresh\_th atualiza
-as informações das estruturas globais de forma periódica, sendo controlado os ciclos 
-pela variável global max\_time.
+as informações das estruturas globais de forma periódica com exclusão mútua
+utilizando as funções pthread\_mutex\_lock e pthread\_mutex\_unlock,
+sendo controlado os ciclos pela variável global max\_time.
 
-\pagebreak
+\section{Telas do ncurses}
+O programa define um gerenciador de janelas toscop\_wm que 
+separa as informações coletadas por telas, em ordem, começando
+com informações globais, em seguida uma lista com todos os processos lidos e
+por fim uma tela com informações detalhadas de um processo:
+\begin{enumerate}
+    \item t\_win th\_win 
+    \item t\_win tp\_win  
+    \item t\_win proc\_win 
+\end{enumerate}
+
+Seguindo a mesma enumeração, as estruturas utilizadas para guardar os dados são:
+\begin{enumerate}
+    \item term\_header th 
+    \item term\_procs tp
+    \item w\_proc proc
+\end{enumerate}
+
+A estrutura de tela utilizada está declarada no arquivo 
+\textit{toscop/include/toscop\_win.h}:
+\begin{minted}{c}
+// wrapper da window com suas informacoes basicas
+typedef struct t_win {
+    WINDOW* win;
+    int width;
+    int height;
+    int x;
+    int y;
+    uint64_t starts_at;
+} t_win;
+// enum para alternar entre telas
+typedef enum WIN_TABS {
+    TH_WIN = 0,
+    TP_WIN,
+    PROC_WIN,
+} WIN_TABS;
+// estrutura para genrenciamento das telas do ncurses
+typedef struct toscop_wm {
+    t_win th_win;           // term_header window (info global)
+    t_win tp_win;           // term_procs window  (info da lista de procs)
+    t_win proc_win;         // window do proc     (info do processo)
+
+    WIN_TABS c_win;         // window atual que esta com foco
+} toscop_wm;
+\end{minted}
+
+\subsection{Tela th\_win}
+A primeira tela do toscop mostra informações globais do sistema 
+operacional. Todas as informações foram obtidas via \textit{syscalls}
+do linux ou lendo o diretório \textit{/proc} e seus subdiretórios. A 
+estrutura que guarda todas as informações da tela th\_win, é term\_header
+que está declarada em \textit{toscop/include/term\_header.h} 
+
+\begin{minted}{c}
+// cabeçalho do toscop com informações globais
+typedef struct term_header {
+    struct sysinfo si;  // sysinfo contem informaçoes do sistema
+    struct tm* ti;      // timeinfo contem informacoes de tempo
+
+    cpu_stats cpu_stat; // valores de tempo de uso do cpu, em secs e em %
+    mem_stats mem_stat; // valores de memoria, em uso, livre, virtual etc...
+
+    double lavg[3];     // loadavg do sistema
+
+    uint64_t d_uptime;  // tempo em sec dos dias
+    uint64_t h_uptime;  // tempo em sec das horas
+    uint64_t m_uptime;  // tempo em sec dos minutos
+
+    uint64_t t_procs;   // total de processos listados no /proc/[pid]
+    uint64_t t_threads; // total de tasks listados no /proc/[pid]/task/[tid]
+} term_header;
+\end{minted}
+nota: si é um struct utilizado na \textit{syscall sysinfo};\\
+nota: ti é o struct retornado da funcão localtime utilizando a \textit{syscall time};\\
+nota: cpu\_stats é um struct que guarda informações do \textit{/proc/stat};\\
+nota: mem\_stats é um struct que guarda informações do \textit{/proc/meminfo};
+
+\begin{figure}[hb]
+    \centering
+    \includegraphics[width=1\textwidth]{toscop\_header}
+    \caption{exemplo tela th\_win}
+\end{figure}
+As informações do sistema operacional estão organizadas em linhas, 
+contendo data e hora, número de processos e threads, estados dos processos, 
+porcetagem de uso de CPU e de memória, memória RAM e memória virtual,
+memória swap e memória compartilhada, tamanho de página e memória em buffer/cache.
+
+\subsection{Tela tp\_proc}
+A segunda tela do toscop mostra uma lista de processos. Todas as 
+informações para criar a lista são lidas no \textit{/proc/[pid]} e seus
+subdiretórios, a estrutura que guarda todos processos é term\_procs declarada
+em \textit{toscop/include/term\_procs.h} que contém a lista duplamente
+encadeada declarada em \textit{toscop/include/proc\_list.h}:
+\begin{minted}{c}
+// lista duplamente encadeada para guardar a struct do proc
+typedef struct proc_list {
+   w_proc *proc;
+   struct proc_list *next;
+   struct proc_list *prev;
+} ProcList;
+// estrutura que le o /proc e inicializa a lista de procs
+typedef struct term_procs {
+    ProcList *proc_list;
+    ProcList *proc_list_tail;
+} term_procs;
+\end{minted}
+\begin{figure}[hb]
+    \centering
+    \includegraphics[width=1\textwidth]{toscop\_procs}
+    \caption{exemplo tela tp\_win}
+\end{figure}
+As informaçoes dos processos estão separadas por colunas sendo:
+identificador do processo; nome do usuário dono do processo;
+prioridade real no escalonador; prioridade em espaço de usuário;
+estado do processo; arquivo executável que iniciou o processo.
+
+\subsection{Tela proc\_win}
+A terceira tela do toscop mostra informações detalhadas de um processo. Todas
+as informações para criar um processo são lidos no \textit{/proc/[pid]} e seus
+subdiretórios, a estrutura que guarda um processo é w\_proc declarada
+em \textit{toscop/include/w\_proc.h}:
+\begin{minted}{c}
+// conteudo de um processo
+typedef struct w_proc {
+    token* ptokens;          // campos do /proc/[pid]/stat
+    char* path;              // caminho absoluto -> /proc/[pid]
+    char* owner_name;        // nome do usuario dono da proc
+    int uid;                 // user id
+    int gid;                 // grupo dono da proc
+
+    uint64_t r_mem;          // (rss) ram total de memoria do processo 
+    uint64_t v_mem;          // virtual size total do processo
+    uint64_t pr_mem;         // total de paginas de rss do processo
+    uint64_t pv_mem;         // total de paginas de vm do processo
+    uint64_t stack_pages;    // total de paginas da stack
+    uint64_t stack_size;     // total em kB da stack
+    uint64_t heap_pages;     // total de paginas da heap
+    uint64_t heap_size;      // total em kB da heap
+    uint64_t text_pages;     // total de paginas do text
+    uint64_t text_size;      // total em kB do text
+
+    uint64_t r_threads;      // running threads de um proc
+    uint64_t s_threads;      // sleeping threads de um proc 
+    uint64_t z_threads;      // zoombie threads de um proc
+    uint64_t i_threads;      // idle threads de um proc
+} w_proc;
+\end{minted}
+nota: token *ptokens é um struct declarado em \textit{toscop/include/proc\_parser.h} que guarda os campos definidos no \textit{/proc/[pid]/stat};
+\begin{figure}[hb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{toscop\_proc}
+    \caption{exemplo tela proc\_win}
+\end{figure}
+
+A tela do processo está organizada em linhas, contendo identificador e
+nome do comando que inicializou o processo, número total
+de threads e seus estados, memória virtual, memória stack, memória
+heap e memória de text/code, tanto em kB quanto em número de páginas.
 
 \end{document}
