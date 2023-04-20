@@ -104,3 +104,8 @@ make tex
 - https://linux.die.net/man/3/strncpy                                  # copiar char* de forma segura
 - https://man7.org/linux/man-pages/man3/localtime.3p.html              # localtime, utilizado em conjunto com time
 - https://linux.die.net/man/1/pdflatex                                 # comando para gerar pdf a partir de um file tex
+- https://github.com/coreutils/coreutils                               # codigo fonte de todos os programas do coreutils
+- https://man7.org/linux/man-pages/man5/fstab.5.html                   # para entender o formato /proc/self/mounts
+- https://man7.org/linux/man-pages/man2/statfs.2.html                  # syscall para obter informacoes de filesystems
+- https://man7.org/linux/man-pages/man3/statvfs.3.html                 # wrapper da syscall statfs que diz nas notas que foi deprecated pelo LSB
+- https://man7.org/linux/man-pages/man3/getmntent.3.html               # para nao ter que fazer o parse do /proc/self/mounts na mao, leia /usr/include/mntent.h
