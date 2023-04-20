@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include "term_fs.h"
+#include "toscop.h"
 #include "toscop_win.h"
 
 static void read_fs(term_fs* tfs);
@@ -59,7 +60,13 @@ static void read_fs(term_fs* tfs) {
         
         struct statfs st;
         if (statfs(mnt_ent->mnt_dir, &st) == -1) {
-            fprintf(stderr, "ERROR: could statfs %s: %s\n", mnt_ent->mnt_dir, strerror(errno));
+            /* apenas mostra que não conseguiu ler um fs
+             * caso esteja em debug, pois é muito comum
+             * nao conseguir ler por falta de permissão */
+            if (fdebug)
+                fprintf(stderr, "ERROR: could statfs %s: %s\n", mnt_ent->mnt_dir, strerror(errno));
+
+            // ignora caso nao consiga ler
             continue;
         }
        
