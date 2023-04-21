@@ -17,7 +17,7 @@ NAME = toscop
 TEX = $(NAME).tex
 
 .PHONY: all
-all: $(NAME) tex
+all: $(NAME)
 
 $(NAME): build
 	$(CC) $(SOURCES) $(COMPILER_FLAGS) $(LINKER_FLAGS) $(INCLUDES) -o ./build/$(NAME)
@@ -30,7 +30,7 @@ install: $(NAME)
 
 tex:
 	pdflatex -shell-escape -interaction=batchmode $(TEX) 
-	rm $(NAME).log 
+	@rm $(NAME).log 
 
 build:
 	@mkdir -p build/
