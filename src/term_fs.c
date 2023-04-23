@@ -1,3 +1,5 @@
+#include <curses.h>
+#include <ncurses.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +10,8 @@
 #include "term_fs.h"
 #include "toscop.h"
 #include "toscop_win.h"
+
+uint64_t total_fs = 0;
 
 static void read_fs(term_fs* tfs);
 static FsList* add_w_fs(FsList* lfs, w_fs* fs);
@@ -46,7 +50,7 @@ static void read_fs(term_fs* tfs) {
     // a syscall statfs retorna um struct statfs
 
     assert(tfs != NULL);
-    tfs->fs_list = NULL;
+    tfs->fs_list = NULL; // inicializa lfs
 
     FILE* mnt_file = setmntent("/proc/self/mounts", "r");
     if (mnt_file == NULL) {
@@ -94,7 +98,7 @@ static void read_fs(term_fs* tfs) {
 
         // add to lfs
         tfs->fs_list = add_w_fs(tfs->fs_list, fs);
-
+        total_fs++; // total de filesystem lido
     }
 
     // para limpar o struct mntent
@@ -118,9 +122,23 @@ static void print_w_fs(w_fs* fs, t_win fs_win) {
 static void print_lfs(FsList* lfs, t_win fs_win) {
 
     assert(lfs != NULL);
-    
-    for (FsList* aux = lfs; aux != NULL; aux = aux->next_lfs) {
-        print_w_fs(aux->fs, fs_win);
+    FsList* aux = lfs;
+    uint64_t i = 0;
+
+    // passa n primeiros
+    for (; aux != NULL && i < fs_win.starts_at; ++i)
+        aux = aux->next_lfs;
+
+    for (; aux != NULL; aux = aux->next_lfs) {
+        // caso for o item selecionado printa com fg e bg invertidos
+        if (i == fs_win.starts_at) {
+            wattron(fs_win.win, COLOR_PAIR(2) | A_BOLD);
+            print_w_fs(aux->fs, fs_win);
+            wattroff(fs_win.win, COLOR_PAIR(2) | A_BOLD);
+        } else {
+            print_w_fs(aux->fs, fs_win);
+        }
+        i++;
     }
 }
 
@@ -130,7 +148,7 @@ void tfs_print(term_fs *tfs, t_win fs_win) {
     assert(tfs->fs_list != NULL);
     assert(fs_win.win != NULL);
 
-    FORMAT(wprintw, fs_win.win, A_BOLD, "\n  type\t\t size\t    free    used mount\n");
+    FORMAT(wprintw, fs_win.win, A_BOLD, "\n  TYPE\t\t SIZE\t    FREE    USED MOUNT\n");
     print_lfs(tfs->fs_list, fs_win);
 }
 

@@ -16,14 +16,15 @@ typedef struct t_win {
     int x;
     int y;
     uint64_t starts_at;
+    uint64_t bound;
 } t_win;
 
 // enum para alternar entre as window
 typedef enum WIN_TABS {
-    TH_WIN = 0,
-    TP_WIN,
-    PROC_WIN,
+    TP_WIN = 0,
     FS_WIN,
+    PROC_WIN,
+    TH_WIN,
 } WIN_TABS;
 
 /*

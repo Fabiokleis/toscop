@@ -68,8 +68,6 @@ void cli(int argc, char **argv) {
 // inicializa os structs necessarios, screens, e cria as threads do toscop
 // faz o loop principal, o join e limpa todos os recursos utilizados
 void run(void) {
-    // inicializa ncurses e as window do toscop
-    wm = create_toscop_wm(); 
 
     // inicializa o unico mutex das threads
     pthread_mutex_init(&toscop_mutex, NULL);
@@ -92,6 +90,9 @@ void run(void) {
 
     // tfs tema listsa com os fs
     tfs = create_term_fs();
+
+    // inicializa ncurses e as window do toscop
+    wm = create_toscop_wm(); 
 
     // thread para printar os processos
     toscop_thread_t print_thread;

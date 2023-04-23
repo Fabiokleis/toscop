@@ -95,8 +95,13 @@ void tp_free(term_procs *tp) {
 }
 
 // printa a lista de procs
-void tp_print(term_procs* tp, toscop_wm* wm, uint64_t starts_at, uint64_t max_rows){
+void tp_print(term_procs* tp, toscop_wm* wm){
     assert(tp->proc_list_tail != NULL);
     FORMAT(wprintw, wm->tp_win.win, A_BOLD,"\n     PID USER       PR  NI S COMMAND\n");
-    print_proclist(tp->proc_list_tail, starts_at, max_rows + starts_at, wm);
+    print_proclist(
+            tp->proc_list_tail, 
+            wm->tp_win.starts_at, 
+            total_procs + wm->tp_win.starts_at,
+            wm
+    );
 }

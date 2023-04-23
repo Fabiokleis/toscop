@@ -13,7 +13,7 @@ typedef struct term_procs {
 } term_procs;
 
 extern term_procs* create_term_procs(void);
-extern void tp_print(term_procs* tp, toscop_wm* wm, uint64_t starts_at, uint64_t max_rows);
+extern void tp_print(term_procs* tp, toscop_wm* wm);
 extern void tp_free(term_procs* tp);
 
 

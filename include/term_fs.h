@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <sys/statfs.h>
 #include "toscop_win.h"
-
 #define GB (double) (1024 * 1024 * 1024)
 
 // wrapper do struct statfs
@@ -27,6 +26,7 @@ typedef struct term_fs {
     FsList* fs_list;
 } term_fs;
 
+extern uint64_t total_fs;
 
 extern term_fs* create_term_fs(void); 
 extern void tfs_print(term_fs* tfs, t_win fs_win);
