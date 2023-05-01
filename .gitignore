@@ -2,4 +2,3 @@ build/
 .cache/
 _minted-toscop/
 compile_commands.json
-toscop.pdf
