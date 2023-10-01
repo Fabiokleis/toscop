@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "term_header.h"
 #include "term_procs.h"
+#include "term_fs.h"
 #include "toscop_win.h"
 
 // macro para rodar alguma coisa com mutex 
@@ -17,6 +18,7 @@ extern double max_time;                // tempo maximo para cada refresh
 extern bool fdebug;                    // flag de debug
 extern term_header* th;                // gerenciador das informacoes globais
 extern term_procs* tp;                 // gerenciador da lista de procs
+extern term_fs* tfs;                   // gerenciador da lista de fs
 extern toscop_wm* wm;                  // gerenciador de window para cada info
 extern void run(void);
 extern void cli(int argc, char** argv); 

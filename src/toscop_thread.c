@@ -36,6 +36,9 @@ void* refresh_th(void* arg) {
             th_free(th);                    // limpa informacoes globais anterior
             th = create_term_header();      // cria o novo term header
             calc_cpu_stats(th, last_stat);  // calcula delta de % cpu
+
+            tfs_free(tfs);              // limpa o fs anterior
+            tfs = create_term_fs();     // cria fs novo
            
             pthread_mutex_unlock(&toscop_mutex);
         

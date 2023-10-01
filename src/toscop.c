@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <getopt.h>
 #include <ctype.h>
+#include "term_fs.h"
 #include "toscop.h"
 #include "term_header.h"
 #include "toscop_thread.h"
@@ -13,6 +14,7 @@ bool fdebug = false;
 double max_time = 0; // definida via argv
 term_header* th;
 term_procs* tp; 
+term_fs* tfs;
 toscop_wm* wm;  
 
 static void print_usage(const char* msg) {
@@ -66,8 +68,6 @@ void cli(int argc, char **argv) {
 // inicializa os structs necessarios, screens, e cria as threads do toscop
 // faz o loop principal, o join e limpa todos os recursos utilizados
 void run(void) {
-    // inicializa ncurses e as window do toscop
-    wm = create_toscop_wm(); 
 
     // inicializa o unico mutex das threads
     pthread_mutex_init(&toscop_mutex, NULL);
@@ -87,6 +87,12 @@ void run(void) {
 
     // tp tem a lista de processos
     tp = create_term_procs();
+
+    // tfs tema listsa com os fs
+    tfs = create_term_fs();
+
+    // inicializa ncurses e as window do toscop
+    wm = create_toscop_wm(); 
 
     // thread para printar os processos
     toscop_thread_t print_thread;
@@ -124,9 +130,9 @@ void run(void) {
     // free em tudo que foi usado
     pthread_mutex_destroy(&toscop_mutex);
     pthread_attr_destroy(&attr);
-    th_free(th); // limpa infos globais
-    tp_free(tp); // limpa lista de procs
-    wm_free(wm); // mata as window
-    free(wm); // limpa o struct wm
+    th_free(th);   // limpa infos globais
+    tp_free(tp);   // limpa lista de procs
+    tfs_free(tfs); // limpa filesystem
+    wm_free(wm);   // mata as window
+    free(wm);      // limpa o struct wm
 }
-

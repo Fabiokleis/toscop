@@ -3,6 +3,7 @@
 \usepackage{minted}
 \usepackage{dirtree}
 \usepackage{graphicx}
+\graphicspath{{./images/}}
 \usemintedstyle{colorful}
 
 \title{Toscop}
@@ -23,6 +24,7 @@ utiliza o sistema make para o gerenciamento de compilação:
 .2 include/\DTcomment{C include directory}.
 .3 proc\_list.h.
 .3 proc\_parser.h.
+.3 term\_fs.h.
 .3 term\_header.h.
 .3 term\_procs.h.
 .3 toscop.h.
@@ -36,6 +38,7 @@ utiliza o sistema make para o gerenciamento de compilação:
 .3 main.c.
 .3 proc\_list.c.
 .3 proc\_parser.c.
+.3 term\_fs.c.
 .3 term\_header.c.
 .3 term\_procs.c.
 .3 toscop.c.
@@ -80,6 +83,7 @@ extern double max_time;                // tempo maximo para cada refresh
 extern bool fdebug;                    // flag de debug
 extern term_header* th;                // gerenciador das informacoes globais
 extern term_procs* tp;                 // gerenciador da lista de procs
+extern term_fs* tfs;                   // gerenciador da lista de fs
 extern toscop_wm* wm;                  // gerenciador de window para cada info
 extern void run(void);
 extern void cli(int argc, char** argv); 
@@ -165,17 +169,14 @@ void* refresh_th(void* arg) {
     cpu_stats last_stat = {0}; 
  
     while (k_p != 'q') {
-
         clock_gettime(CLOCK_MONOTONIC, &ct); 
         // calcula o tempo atual - tempo do começo
         refresh_t = (ct.tv_sec - st.tv_sec) + ((ct.tv_nsec - st.tv_nsec) / N_TO_S); 
 
         // caso tenha passado max_time sec da refresh 
         if (refresh_t >= max_time) {
-            // reseta o clock, start time recebe current time
-            st = ct;                  
-            // guarda o ultimo valor de cpu usage sem delta
-            last_stat = th->cpu_stat; 
+            st = ct; // reseta o clock, start time recebe current time 
+            last_stat = th->cpu_stat; // guarda o ultimo valor de cpu usage sem delta 
       
             pthread_mutex_lock(&toscop_mutex);
 
@@ -185,7 +186,10 @@ void* refresh_th(void* arg) {
             th_free(th);                    // limpa informacoes globais anterior
             th = create_term_header();      // cria o novo term header
             calc_cpu_stats(th, last_stat);  // calcula delta de % cpu
-           
+
+            tfs_free(tfs);              // limpa o fs anterior
+            tfs = create_term_fs();     // cria fs novo
+
             pthread_mutex_unlock(&toscop_mutex);
         
         }
@@ -201,13 +205,12 @@ sendo controlado os ciclos pela variável global max\_time.
 
 \section{Telas do ncurses}
 O programa define um gerenciador de janelas toscop\_wm que 
-separa as informações coletadas por telas, em ordem, começando
-com informações globais, em seguida uma lista com todos os processos lidos e
-por fim uma tela com informações detalhadas de um processo:
+separa as informações coletadas por telas:
 \begin{enumerate}
     \item t\_win th\_win 
     \item t\_win tp\_win  
     \item t\_win proc\_win 
+    \item t\_win fs\_win
 \end{enumerate}
 
 Seguindo a mesma enumeração, as estruturas utilizadas para guardar os dados são:
@@ -215,8 +218,8 @@ Seguindo a mesma enumeração, as estruturas utilizadas para guardar os dados s�
     \item term\_header th 
     \item term\_procs tp
     \item w\_proc proc
+    \item term\_fs
 \end{enumerate}
-
 A estrutura de tela utilizada está declarada no arquivo 
 \textit{toscop/include/toscop\_win.h}:
 \begin{minted}{c}
@@ -228,22 +231,18 @@ typedef struct t_win {
     int x;
     int y;
     uint64_t starts_at;
+    uint64_t bound;
 } t_win;
-// enum para alternar entre telas
-typedef enum WIN_TABS {
-    TH_WIN = 0,
-    TP_WIN,
-    PROC_WIN,
-} WIN_TABS;
 // estrutura para genrenciamento das telas do ncurses
 typedef struct toscop_wm {
     t_win th_win;           // term_header window (info global)
     t_win tp_win;           // term_procs window  (info da lista de procs)
     t_win proc_win;         // window do proc     (info do processo)
-
+    t_win fs_win;           // window com filesystem (info do filesystem) 
     WIN_TABS c_win;         // window atual que esta com foco
 } toscop_wm;
 \end{minted}
+nota: WIN\_TABS é um enum para alternar entre telas;
 
 \subsection{Tela th\_win}
 A primeira tela do toscop mostra informações globais do sistema 
@@ -257,10 +256,8 @@ que está declarada em \textit{toscop/include/term\_header.h}
 typedef struct term_header {
     struct sysinfo si;  // sysinfo contem informaçoes do sistema
     struct tm* ti;      // timeinfo contem informacoes de tempo
-
     cpu_stats cpu_stat; // valores de tempo de uso do cpu, em secs e em %
     mem_stats mem_stat; // valores de memoria, em uso, livre, virtual etc...
-
     double lavg[3];     // loadavg do sistema
 
     uint64_t d_uptime;  // tempo em sec dos dias
@@ -276,7 +273,7 @@ nota: ti é o struct retornado da funcão localtime utilizando a \textit{syscall
 nota: cpu\_stats é um struct que guarda informações do \textit{/proc/stat};\\
 nota: mem\_stats é um struct que guarda informações do \textit{/proc/meminfo};
 
-\begin{figure}[hb]
+\begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{toscop\_header}
     \caption{exemplo tela th\_win}
@@ -305,7 +302,7 @@ typedef struct term_procs {
     ProcList *proc_list_tail;
 } term_procs;
 \end{minted}
-\begin{figure}[hb]
+\begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{toscop\_procs}
     \caption{exemplo tela tp\_win}
@@ -347,15 +344,49 @@ typedef struct w_proc {
 } w_proc;
 \end{minted}
 nota: token *ptokens é um struct declarado em \textit{toscop/include/proc\_parser.h} que guarda os campos definidos no \textit{/proc/[pid]/stat};
-\begin{figure}[hb]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.5\textwidth]{toscop\_proc}
     \caption{exemplo tela proc\_win}
 \end{figure}
-
 A tela do processo está organizada em linhas, contendo identificador e
 nome do comando que inicializou o processo, número total
 de threads e seus estados, memória virtual, memória stack, memória
 heap e memória de text/code, tanto em kB quanto em número de páginas.
+
+\subsection{Tela fs\_win}
+A tela do toscop fs\_win mostra informações sobre o sistema de arquivos. Todas
+as informações para montar a tela de filesystem são lidos no \textit{/proc/self/mounts}
+e utilizando \textit{syscalls} do linux, a estrutura que guarda o filesystem é
+term\_fs declarada em \textit{toscop/include/term\_fs.h}
+\begin{minted}{c}
+// wrapper do struct statfs
+typedef struct w_fs { 
+    char* mnt_point;    // fs directory (/, /dev, /run, /tmp, /swap, /boot, /home, ...)
+    char* fs_type;      // tipo de fs (extN, btrfs, dev, devtmpfs, tmpfs, run...)
+    double fs_size;     // tamanho total do em GB
+    double fs_fsize;    // tamanho total livre em GB
+    double fs_used;     // % de uso do fs 
+} w_fs;
+// lista com todos os fs
+typedef struct FsList {
+    w_fs* fs;
+    struct FsList* next_lfs;
+} FsList;
+// tabela de fs
+typedef struct term_fs {
+    FsList* fs_list;
+} term_fs;
+\end{minted}
+nota: w\_fs guarda informações obtidas da \textit{syscall statfs} nos diretórios do fs;
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{toscop\_fs}
+    \caption{exemplo tela fs\_win}
+\end{figure}
+As informaçoes dos filesystem estão separadas por colunas sendo:
+tipo do sistema de arquivo; tamanho total em GB; quantidade livre em GB;
+porcentagem utilizada do tamanho total; ponto de montagem;
 
 \end{document}

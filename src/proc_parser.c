@@ -99,8 +99,8 @@ token find_token(char* name, FILE* qf) {
 
     while ((nread = getline(&line, &lsz, qf)) != -1) {
         if (strstr(line, name) == line) {
-
-            char* s_val = line + strlen(name); // soma o endereço inicial com o tamanho do name, passando para fim do char*
+            // soma o endereço inicial com o tamanho do name, passando para fim do char*
+            char* s_val = line + strlen(name); 
             s_val = trim_l(s_val); // remove os espaços a esquerda
 
             // vai até a ocorrencia primeiro espaço antes de terminar o char*
