@@ -1,8 +1,29 @@
 # Toscop
+[![C Compilation CI](https://github.com/Fabiokleis/toscop/actions/workflows/c-compilation-ci.yml/badge.svg?branch=main)](https://github.com/Fabiokleis/toscop/actions/workflows/c-compilation-ci.yml)
+
 uma versão tosca do comando top,
 trabalho para disciplina de sistemas operacionais.
 
 ![toscop4](https://user-images.githubusercontent.com/66813406/231803102-dae021aa-228b-4f96-8255-e3e38ff0d919.gif)
+
+## Dependências 
+
+O projeto utiliza a lib ncurses para interface no terminal.
+
+Debian
+```console
+sudo apt-get install libncurses5-dev libncursesw5-dev
+```
+
+Fedora
+```console
+sudo dnf install ncurses-devel
+```
+
+Arch Linux
+```console
+sudo pacman -S ncurses
+```
 
 ## Build e Run
 
@@ -81,7 +102,7 @@ make tex
 - https://man7.org/linux/man-pages/man0/sys_stat.h.0p.html             # para entender como pegar informacoes de arquivo com a funcao stat 
 - https://linux.die.net/man/3/snprintf                                 # para concatenar strings com formatacao
 - https://linux.die.net/man/3/getpwuid                                 # para obter informacoes de usuario com base no uid
-- https://man7.org/linux/man-pages/man2/nice.2.html                    # para enteder oque é nice
+- https://man7.org/linux/man-pages/man2/nice.2.html                    # para entender oque é nice
 - https://linux.die.net/man/3/ctime                                    # para obter o tempo do sistema com o struct tm
 - https://pubs.opengroup.org/onlinepubs/7908799/xcurses/curses.h.html  # ncurses para criar a interface do programa toscop
 - https://man7.org/linux/man-pages/man5/proc.5.html                    # man do proc para ver quais arquivos preciso ler
