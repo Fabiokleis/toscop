@@ -1,0 +1,22 @@
+name: C Compilation CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: setup ncurses
+      run: | 
+        sudo apt-get update -y &&
+        sudo apt-get install libncurses5-dev libncursesw5-dev
+        
+    - name: compile toscop
+      run: make toscop
+  
